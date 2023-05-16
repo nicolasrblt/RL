@@ -38,9 +38,7 @@ def create_mlp(sizes, activation, output_activation=nn.Identity):
     layers = []
     activations = [activation] * (len(sizes)-2) + [output_activation]
     for act, s1, s2 in zip(activations, sizes, sizes[1:]):
-        print((s1, s2), act)
         layers += [nn.Linear(s1, s2), act()]
-    print()
     return nn.Sequential(*layers)
 
 
@@ -101,25 +99,26 @@ class Policy(nn.Module):  # TODO rename Gaussian MLP ?
 
 
     def forward(self, obs, with_log_prob=True, probabilistic=True):  # -> action
+        assert probabilistic or not with_log_prob # no logprob on non stochastic action
         feat = self.net(obs)
         mu = self.mu_layer(feat)
-        log_std = self.log_std_layer(feat)
-        log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
-        std = torch.exp(log_std)
 
-        distr = torch.distributions.normal.Normal(mu, std)
-        action = distr.rsample()
+        logp_pi = None
 
-        logp_pi = distr.log_prob(action).sum(axis=-1)
-        logp_pi -= (2*(np.log(2) - action - functional.softplus(-2*action))).sum(axis=-1)
-        ## formula from spinningup implementation, originally from arXiv 1801.01290 (appendix C)
+        if probabilistic:
+            log_std = self.log_std_layer(feat)
+            log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
+            std = torch.exp(log_std)
+            distr = torch.distributions.normal.Normal(mu, std)
+            action = distr.rsample()
+        else:
+            action = mu
+
+        if with_log_prob:
+            logp_pi = distr.log_prob(action).sum(axis=-1)
+            logp_pi -= (2*(np.log(2) - action - functional.softplus(-2*action))).sum(axis=-1)
+            ## formula from spinningup implementation, originally from arXiv 1801.01290 (appendix C)
 
         action = torch.tanh(action)  # normalize action to action space bounds
         action = self.act_high * action
-        assert not torch.any(torch.isnan(logp_pi))
-        assert not torch.any(torch.isinf(torch.abs(logp_pi)))
-
-        assert not torch.any(torch.isnan(action))
-        assert not torch.any(torch.isinf(torch.abs(action)))
-
         return action, logp_pi

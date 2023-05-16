@@ -45,82 +45,74 @@ class SACAgent:
     def train(self, seed, from_epoch=0, **training_params):
         self.param.update(training_params)
 
-        ### initialise stuff
         if self.replay_buffer is None:
             self.replay_buffer = ReplayBuffer(get_obs_dim(self.env), get_act_dim(self.env),
                                               self.param.replay_size)
-
-        ###
-
-        obs, *_ = self.env.reset(seed=seed)
         ep_len = 0
+        obs, *_ = self.env.reset(seed=seed)
 
-        assert not (any(torch.any(torch.isnan(p)) for p in self.policy.parameters()))
-
-        print(from_epoch)
         for t in range(from_epoch*self.param.epoch_len, self.param.steps):
-            assert not (any(torch.any(torch.isnan(p)) for p in self.policy.parameters()))
-
+            ep_len += 1
+            # choose action at random or from policy
             if t > self.param.start_steps:
                 act = self.act(obs)
             else:
                 act = get_random_act(self.env)
-            assert not (any(torch.any(torch.isnan(p)) for p in self.policy.parameters()))
 
+            # act according to choosen action
             obs2, rew, terminated, truncated, *_ = self.env.step(act)
             done = terminated or truncated
-            assert not (any(torch.any(torch.isnan(p)) for p in self.policy.parameters()))
 
-            ep_len += 1
-            if ep_len >= self.param.max_ep_len:
-                done = True
-            self.replay_buffer.record(obs, act, obs2, rew, done)
+            self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_ep_len)
             obs = obs2
 
-            assert not (any(torch.any(torch.isnan(p)) for p in self.policy.parameters()))
-
-            if done: # reset env
+            # reset environment and ep if episode is finished
+            if done or ep_len >= self.param.max_ep_len:
                 obs, *_ = self.env.reset()
                 ep_len = 0
 
+            # show epoch stats and save checkpoint on epoch end
             if t % self.param.epoch_len == 0 and t >= 0:
                 avg_rew, avg_len = self.test()
                 print(f"=== epoch {t//self.param.epoch_len} || avg rew : {avg_rew} || avg len : {avg_len}")
                 self.checkpoint(t)
 
-
+            # update policy and qnet when needed
             if t % self.param.update_every == 0 and t >= self.param.update_after:
                 for _ in range(self.param.update_every):
                     batch = self.replay_buffer.sample(self.param.batch_size)
-
-                    self.q1_optimizer.zero_grad()
-                    self.q2_optimizer.zero_grad()
-                    q1_loss, q2_loss = self.compute_loss_q(batch)
-                    q1_loss.backward()
-                    q2_loss.backward()
-                    self.q1_optimizer.step()
-                    self.q2_optimizer.step()
-
-                    ## TODO surround this block by q.parms.require_grad=false ? and why ?
-                    self.pi_optimizer.zero_grad()
-                    pi_loss = self.compute_loss_pi(batch)
-                    pi_loss.backward()
-                    self.pi_optimizer.step()
-
-                    with torch.no_grad():
-                        for p, p_targ in zip (chain(self.q1.parameters(), self.q2.parameters()),
-                                              chain(self.q1_targ.parameters(), self.q2_targ.parameters())):
-                            p_targ.mul_(self.param.polyak)
-                            p_targ.add_(p.mul(1-self.param.polyak))
-
-                #print(f"after updt => t={t}, pi({act})")
+                    self.update(batch)
 
 
+    def update(self, batch):
+        self.q1_optimizer.zero_grad()
+        self.q2_optimizer.zero_grad()
+        q1_loss, q2_loss = self.compute_loss_q(batch)
+        q1_loss.backward()
+        q2_loss.backward()
+        self.q1_optimizer.step()
+        self.q2_optimizer.step()
 
+        for p in chain(self.q1.parameters(), self.q2.parameters()):  # FIXME : equivalent to with no_grad() around q_pi in loss_pi ?
+            p.require_grad = False
 
-    def act(self, obs): ## TODO rename this
+        self.pi_optimizer.zero_grad()
+        pi_loss = self.compute_loss_pi(batch)
+        pi_loss.backward()
+        self.pi_optimizer.step()
+
+        for p in chain(self.q1.parameters(), self.q2.parameters()):
+            p.require_grad = True
+
         with torch.no_grad():
-            a, _ = self.policy(torch.as_tensor(obs))
+            for p, p_targ in zip (chain(self.q1.parameters(), self.q2.parameters()),
+                                    chain(self.q1_targ.parameters(), self.q2_targ.parameters())):
+                p_targ.mul_(self.param.polyak)
+                p_targ.add_(p.mul(1-self.param.polyak))
+                
+    def act(self, obs, probabilistic=True): ## TODO rename this
+        with torch.no_grad():
+            a, _ = self.policy(torch.as_tensor(obs), with_log_prob=False, probabilistic=probabilistic)
             return a.numpy()
         
     def compute_loss_pi(self, batch):
@@ -130,8 +122,6 @@ class SACAgent:
             self.q1(obs, act),
             self.q2(obs, act)
         )
-        assert not torch.isinf(torch.abs((q_pi-self.param.alpha*logp).mean()))
-        assert not torch.isnan(torch.abs((q_pi-self.param.alpha*logp).mean()))
         return -(q_pi-self.param.alpha*logp).mean()
         # minus denotes the fact that we perform a gradient *ascent*
 
@@ -140,12 +130,9 @@ class SACAgent:
         
         with torch.no_grad():  # no grad while computing target
             pi_act, pi_logp = self.policy(obs2)
-
-            q1_val = self.q1_targ(obs2, pi_act)
-            q2_val = self.q2_targ(obs2, pi_act)
             min_q_pi = torch.min(
-                q1_val,
-                q2_val
+                self.q1_targ(obs2, pi_act),
+                self.q2_targ(obs2, pi_act)
             )
             target = rew + self.param.gamma * (1-done) * (min_q_pi-self.param.alpha*pi_logp)
 
@@ -156,9 +143,8 @@ class SACAgent:
         ep = 0
         ep_len = 0
         tot_rew = 0
-        ep_ret = 0
         tot_len = 0
-
+        
         while ep < max_ep:
             act = self.act(obs)
             obs, rew, terminated, truncated, *_ = self.env.step(act)
@@ -166,12 +152,10 @@ class SACAgent:
             ep_len += 1
             tot_len += 1
             tot_rew += rew
-            ep_ret += rew
 
             if done or ep_len >= self.param.max_ep_len:
                 obs, *_ = self.env.reset()
                 ep_len = 0
-                ep_ret = 0
                 ep += 1
         return tot_rew / max_ep, tot_len / max_ep
 
@@ -232,8 +216,3 @@ if __name__ == "__main__":
             agent.replay_buffer = cp["replay_buffer"]
             from_epoch = cp['epoch']
         agent.train(seed, from_epoch=from_epoch, gamma=args.gamma, epochs=args.epochs)
-        torch.save(agent.policy.state_dict("pi.pt"))
-
-
-    
-    print("done.")
