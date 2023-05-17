@@ -33,25 +33,27 @@ public class Client : MonoBehaviour
 
     private void ReceiveMessage()
     {
-        
+        Debug.Log("beginning listening for incoming msgs");
+        byte[] buffer = new byte[4096];
         while (!stop)
         {
-            byte[] buffer = new byte[4096];
             int bytesRead;
             StringBuilder stringBuilder = new StringBuilder();
 
+            //Debug.Log("read loop in");
             do
             {
+            //Debug.Log("read loop inside");
                 bytesRead = stream.Read(buffer, 0, buffer.Length);
                 stringBuilder.Append(System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead));
             } while (stream.DataAvailable);
+            //Debug.Log("read loop out");
 
             if (stringBuilder.Length > 0)
             {
                 string json = stringBuilder.ToString();
 
                 RequestMessage message = RequestMessage.FromJson(json);
-                Debug.Log(message);
                 CallAPI(message);
             }
         }
@@ -72,7 +74,7 @@ public class Client : MonoBehaviour
         //}
         client.Close();
 
-        #if UNITY_EDITOR
+        #if UNITY_EDITOR  // FIXME : quitting app shouldn't be client responsability ?
             EditorApplication.ExitPlaymode();
         #else
                 Application.Quit();

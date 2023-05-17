@@ -2,8 +2,8 @@ import json
 
 class ControllMessage:
     def __init__(self, moveInput, turnInput):
-        self.moveInput = moveInput
-        self.turnInput = turnInput
+        self.moveInput = float(moveInput)  # convert to float to make sure its serializable
+        self.turnInput = float(turnInput)  # (np.float32 are not)
         
     @staticmethod
     def from_json(json_string):

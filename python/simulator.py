@@ -27,8 +27,9 @@ def pharse_observations(obs):
     
     done = obs.terminate
     reward = obs.reward
+
     
-    return torch.Tensor([vector]), reward, done
+    return torch.Tensor(vector), reward, done  ## FIXME(ok) : remove brackets around vector FIXME : should return array not tensor
 
 class Simulator:
     def __init__(self, host="127.0.0.1", port=5004) -> None:
