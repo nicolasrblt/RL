@@ -2,13 +2,14 @@ from copy import deepcopy
 from itertools import chain
 from dataclasses import dataclass
 import os
+import time
 
 import numpy as np
 import torch
 from torch.optim import Adam
 from torch import nn
 
-from sac_utils import TrainingParameters, create_mlp, QNet, Policy, ReplayBuffer
+from .sac_core import TrainingParameters, create_mlp, QNet, Policy, ReplayBuffer
 
 
 def get_obs_dim(env):
@@ -26,9 +27,9 @@ def get_random_act(env):
 class SACAgent:
     def __init__(self, env) -> None:
         self.env = env
-        self.policy = Policy(get_obs_dim(env), get_act_dim(env), get_act_high(env))
-        self.q1 = QNet(get_obs_dim(env), get_act_dim(env))
-        self.q2 = QNet(get_obs_dim(env), get_act_dim(env))
+        self.policy = Policy(env.get_obs_dim(), env.get_act_dim(), env.get_act_high())
+        self.q1 = QNet(env.get_obs_dim(), env.get_act_dim())
+        self.q2 = QNet(env.get_obs_dim(), env.get_act_dim())
         self.q1_targ = deepcopy(self.q1)
         self.q2_targ = deepcopy(self.q2)
         self.pi_optimizer = Adam(self.policy.parameters())
@@ -42,11 +43,13 @@ class SACAgent:
             p.requires_grad = False
 
     ## TODO re-add agent testing, logging, start_step, update_after
-    def train(self, seed, from_epoch=0, **training_params):
+    def train(self, seed=None, from_epoch=0, **training_params):
         self.param.update(training_params)
+        target_frame_duration = self.env.get_target_frame_duration()
+        start_time = 0  # initial value doesn't matter as long as it's < time()
 
         if self.replay_buffer is None:
-            self.replay_buffer = ReplayBuffer(get_obs_dim(self.env), get_act_dim(self.env),
+            self.replay_buffer = ReplayBuffer(self.env.get_obs_dim(), self.env.get_act_dim(),
                                               self.param.replay_size)
         ep_len = 0
         obs, *_ = self.env.reset(seed=seed)
@@ -55,10 +58,15 @@ class SACAgent:
             ep_len += 1
             # choose action at random or from policy
             if t > self.param.start_steps:
-                act = self.act(obs)
+                act = self.get_action(obs)
             else:
-                act = get_random_act(self.env)
+                act = self.env.get_random_act()
 
+            # respect env target framerate
+            elapsed_time = time.time() - start_time
+            sleep_duration = target_frame_duration - elapsed_time
+            if sleep_duration > 0:
+                time.sleep(sleep_duration)
             # act according to choosen action
             obs2, rew, terminated, truncated, *_ = self.env.step(act)
             done = terminated or truncated
@@ -79,9 +87,13 @@ class SACAgent:
 
             # update policy and qnet when needed
             if t % self.param.update_every == 0 and t >= self.param.update_after:
+                self.env.pause()
                 for _ in range(self.param.update_every):
                     batch = self.replay_buffer.sample(self.param.batch_size)
                     self.update(batch)
+                self.env.resume()
+
+            
 
 
     def update(self, batch):
@@ -110,7 +122,7 @@ class SACAgent:
                 p_targ.mul_(self.param.polyak)
                 p_targ.add_(p.mul(1-self.param.polyak))
                 
-    def act(self, obs, probabilistic=True): ## TODO rename this
+    def get_action(self, obs, probabilistic=True): ## TODO rename this
         with torch.no_grad():
             a, _ = self.policy(torch.as_tensor(obs), with_log_prob=False, probabilistic=probabilistic)
             return a.numpy()
@@ -146,7 +158,7 @@ class SACAgent:
         tot_len = 0
         
         while ep < max_ep:
-            act = self.act(obs)
+            act = self.get_action(obs)
             obs, rew, terminated, truncated, *_ = self.env.step(act)
             done = terminated or truncated
             ep_len += 1
@@ -170,49 +182,3 @@ class SACAgent:
             'q2': self.q2.state_dict(),
             'replay_buffer': self.replay_buffer
         }, f"save/{self.env.spec.id}/checkpoint.pt")
-
-
-
-if __name__ == "__main__":
-    import argparse
-    import gymnasium as gym
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default='Pendulum-v1')
-    parser.add_argument('--hid', type=int, default=256)
-    parser.add_argument('--l', type=int, default=2)
-    parser.add_argument('--gamma', type=float, default=0.99)  # discount factor
-    parser.add_argument('--seed', '-s', type=int, default=0)
-    parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--max_step', type=int, default=None)
-    parser.add_argument('--infer', action='store_true')
-    parser.add_argument('--resume', action='store_true')
-    args = parser.parse_args()
-
-    torch.set_num_threads(torch.get_num_threads())
-
-    seed = args.seed
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    env = gym.make(args.env, render_mode='human' if args.infer else None, max_episode_steps=args.max_step)
-    env.action_space.seed(seed)
-    agent = SACAgent(env)
-
-
-    if args.infer:
-        cp = torch.load(f"save/{env.spec.id}/checkpoint.pt")
-        agent.policy.load_state_dict(cp['pi'])
-        agent.policy.eval()
-        agent.test(float("+inf"))
-
-    else:
-        from_epoch = 0
-        if args.resume:
-            cp = torch.load(f"save/{env.spec.id}/checkpoint.pt")
-            agent.policy.load_state_dict(cp['pi'])
-            agent.q1.load_state_dict(cp['q1'])
-            agent.q2.load_state_dict(cp['q2'])
-            agent.replay_buffer = cp["replay_buffer"]
-            from_epoch = cp['epoch']
-        agent.train(seed, from_epoch=from_epoch, gamma=args.gamma, epochs=args.epochs)

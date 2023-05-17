@@ -73,7 +73,7 @@ class ReplayBuffer:
                      rew = self.rew[index],
                      done = self.done[index])
         return {k: torch.as_tensor(v, dtype=torch.float32) for k, v in batch.items()}
-
+    sample_batch = sample  # for compatibility with team codebase
 
 class QNet(nn.Module):
     def __init__(self, obs_dim, act_dim, hidden_sizes=(256, 256), activation=nn.ReLU) -> None:
