@@ -173,12 +173,12 @@ class SACAgent:
 
 
     def checkpoint(self, t):
-        if not os.path.exists(f"save/{self.env.spec.id}/"):
-            os.makedirs(f"save/{self.env.spec.id}/")
+        if not os.path.exists(f"save/{self.env.get_name()}/"):
+            os.makedirs(f"save/{self.env.gat_name()}/")
         torch.save({
             'epoch': t//self.param.epoch_len,
             'pi': self.policy.state_dict(),
             'q1': self.q1.state_dict(),
             'q2': self.q2.state_dict(),
             'replay_buffer': self.replay_buffer
-        }, f"save/{self.env.spec.id}/checkpoint.pt")
+        }, f"save/{self.env.get_name()}/checkpoint.pt")

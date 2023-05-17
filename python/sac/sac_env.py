@@ -28,6 +28,9 @@ class SACEnv:
 
     def get_target_frame_duration(self):
         raise NotImplemented
+    
+    def get_name(self):
+        raise NotImplemented
 
 
 class GymEnv(Wrapper, SACEnv):  # mro -> search first in gym wrapper then in SACEnv
@@ -45,3 +48,6 @@ class GymEnv(Wrapper, SACEnv):  # mro -> search first in gym wrapper then in SAC
     
     def get_target_frame_duration(self):
         return 0
+    
+    def get_name(self):
+        return self.spec.id
