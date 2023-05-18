@@ -69,6 +69,7 @@ class SACAgent:
                 time.sleep(sleep_duration)
             # act according to choosen action
             obs2, rew, terminated, truncated, *_ = self.env.step(act)
+            start_time = time.time()
             done = terminated or truncated
 
             self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_ep_len)
@@ -173,8 +174,8 @@ class SACAgent:
 
 
     def checkpoint(self, t):
-        if not os.path.exists(f"save/{self.env.spec.id}/"):
-            os.makedirs(f"save/{self.env.spec.id}/")
+        if not os.path.exists(f"save/{self.env.get_name()}/"):
+            os.makedirs(f"save/{self.env.get_name()}/")
         torch.save({
             'epoch': t//self.param.epoch_len,
             'pi': self.policy.state_dict(),
