@@ -61,7 +61,13 @@ public class Client : MonoBehaviour
 
     private void CallAPI(RequestMessage message)
     {
-        apiManager.Call(message.api, message.parameter);
+        Debug.Log("calling "+message.api+" | "+message.parameter);
+        string ret = apiManager.Call(message.api, message.parameter);
+        Debug.Log("return : "+ret);
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.value = ret;
+        Send(responseMessage);
+        Debug.Log("sent back "+responseMessage.ToJson());
     }
 
     public void ShutdownSocket(string parameter)
@@ -96,7 +102,7 @@ public class Client : MonoBehaviour
         //apiManager.Register("check", checkAction);
         Connect();
         Action<string> shutdown = ShutdownSocket;
-        apiManager.Register("shutdown", shutdown);
+        //apiManager.Register("shutdown", shutdown);  // TODO fix api
     }
 
     // Update is called once per frame

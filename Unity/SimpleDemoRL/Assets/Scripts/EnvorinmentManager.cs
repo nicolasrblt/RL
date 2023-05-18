@@ -23,8 +23,8 @@ public class EnvorinmentManager : MonoBehaviour
         Action<string> resetAction = ResetAPI;
         Action<string> stepAction = StepAPI;
 
-        client.apiManager.Register("reset", resetAction);
-        client.apiManager.Register("step", stepAction);
+        //client.apiManager.Register("reset", resetAction);  // TODO put these apis elsewhere
+        //client.apiManager.Register("step", stepAction);
     }
 
     public void ResetAPI(string parameter)

@@ -12,7 +12,7 @@ public class PauseGame : MonoBehaviour
     {
         Action<string> resetAction = PauseAPI;
 
-        client.apiManager.Register("pause", resetAction);
+        //client.apiManager.Register("pause", resetAction);
     }
 
     public void PauseAPI(string parameter)

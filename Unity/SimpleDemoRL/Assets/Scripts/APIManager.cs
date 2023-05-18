@@ -3,25 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using API = BaseAPI<APIMessage, APIMessage>;
+
 public class APIManager
 {
-    private Dictionary<string, Action<string>> apiDictionary;
+    private Dictionary<string, API> apiDictionary;
 
     public APIManager()
     {
-        apiDictionary = new Dictionary<string, Action<string>>();
+        apiDictionary = new Dictionary<string, API>();
+        
+        Register("test", new TestApi());
     }
 
-    public void Register(string apiName, Action<string> api)
+    public void Register(string apiName, API api)
     {
         apiDictionary[apiName] = api;
     }
 
-    public void Call(string apiName, string parameter)
+    public string Call(string apiName, string parameter)
     {
-        if (apiDictionary.ContainsKey(apiName))
+        if (apiDictionary.ContainsKey(apiName))  // TODO try removing multithreading
         {
-            UnityMainThreadDispatcher.Instance().Enqueue(() => apiDictionary[apiName](parameter));
+            UnityMainThreadDispatcher.Instance().Enqueue(() => apiDictionary[apiName].Execute(parameter));
+            return apiDictionary[apiName].Execute(parameter);
         }
+        return "";
     }
 }
