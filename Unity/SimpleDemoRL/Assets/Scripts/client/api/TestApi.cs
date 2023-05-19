@@ -6,7 +6,7 @@ using UnityEngine;
 public class TestApi:BaseAPI<APIMessage, APIMessage>
 {
     public override APIMessage Handle(APIMessage arg) {
-        Debug.Log("test api : "+arg);
+        Debug.Log("test api inside : "+arg);
         return null;
     }
 }

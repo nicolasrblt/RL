@@ -63,11 +63,11 @@ public class Client : MonoBehaviour
     {
         Debug.Log("calling "+message.api+" | "+message.parameter);
         string ret = apiManager.Call(message.api, message.parameter);
-        Debug.Log("return : "+ret);
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.value = ret;
-        Send(responseMessage);
-        Debug.Log("sent back "+responseMessage.ToJson());
+        if (ret != null) {
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.value = ret;
+            Send(responseMessage);
+        }
     }
 
     public void ShutdownSocket(string parameter)
