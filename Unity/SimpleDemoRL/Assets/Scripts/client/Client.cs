@@ -13,13 +13,15 @@ public class Client : MonoBehaviour
     public string host;
     public int port;
     //public Manager manager;
+    public EnvorinmentManager env;
 
     private TcpClient client;
     private NetworkStream stream;
     //private Thread receiveThread;
     private Task task;
     private bool stop = false;
-    public APIManager apiManager = new APIManager();
+    private CustomApiManager apiManager;
+
 
     public void Connect()
     {
@@ -54,7 +56,7 @@ public class Client : MonoBehaviour
                 string json = stringBuilder.ToString();
 
                 RequestMessage message = RequestMessage.FromJson(json);
-                CallAPI(message);
+                UnityMainThreadDispatcher.Instance().Enqueue(()=>CallAPI(message));
             }
         }
     }
@@ -100,6 +102,8 @@ public class Client : MonoBehaviour
     {
         //Action<string> checkAction = Check;
         //apiManager.Register("check", checkAction);
+        apiManager = new CustomApiManager(env);
+        apiManager.RegisterAllApis();
         Connect();
         Action<string> shutdown = ShutdownSocket;
         //apiManager.Register("shutdown", shutdown);  // TODO fix api

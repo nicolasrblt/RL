@@ -16,6 +16,7 @@ public class EnvorinmentManager : MonoBehaviour
     public Recorder recorder;
     public TextMeshProUGUI textMeshPro;
     public bool playMod;
+    public float defaultTimeScale = 1f;
     private float timeSinceLastStep = 0f;
     // Start is called before the first frame update
     void Start()
@@ -56,7 +57,7 @@ public class EnvorinmentManager : MonoBehaviour
         //controller.Step();
     }
 
-    private ObservationMessage GetObservation()
+    public ObservationMessage GetObservation()
     {
         ObservationMessage observationMessage = new ObservationMessage();
         observationMessage.agentPostion = spaceManager.agent.transform.position;
@@ -159,10 +160,25 @@ public class EnvorinmentManager : MonoBehaviour
 
     public void Reset()
     {
+        Debug.Log("Env manager : reset space...");
         spaceManager.Reset();
+        Debug.Log("Env manager : reset goal...");
         goalManager.GenerateTask();
+        Debug.Log("Env manager : reset canvas...");
         textMeshPro.SetText(goalManager.instruction);
+        Debug.Log("Env manager : reset replay...");
         recorder.ResetReplay(goalManager.instruction);
+    }
+
+    public void Pause(bool pause) {
+        Time.timeScale = pause ? 0f : defaultTimeScale;
+    }
+
+    public void SetTimeScale(float ts) {
+        defaultTimeScale = ts;
+        if (Time.timeScale != 0) {
+            Time.timeScale = ts;
+        }
     }
 
     public void QuitGame()

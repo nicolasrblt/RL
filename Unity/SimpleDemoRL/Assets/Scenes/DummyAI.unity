@@ -950,6 +950,7 @@ MonoBehaviour:
   recorder: {fileID: 1076631005}
   textMeshPro: {fileID: 2114063582}
   playMod: 0
+  defaultTimeScale: 1
 --- !u!114 &1076631005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1439,6 +1440,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   host: 127.0.0.1
   port: 5004
+  env: {fileID: 1076631004}
 --- !u!4 &1816308908
 Transform:
   m_ObjectHideFlags: 0

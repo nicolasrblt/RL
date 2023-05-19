@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class APIManager
+public abstract class APIManager
 {
     private Dictionary<string, Func<string, string>> apiDictionary;
 
@@ -18,12 +18,7 @@ public class APIManager
         //Register("timeScale", new Func<string, string>((new TimeScaleAPI()).Execute));
         //Register("test", new Func<string, string>((new TestApi()).Execute));
 
-        Register("test", TestApi.GetAPI<TestApi>());
-        Register("timeScale", TimeScaleAPI.GetAPI<TimeScaleAPI>());
-        Register("pause", PauseAPI.GetAPI<PauseAPI>());
-        Register("step", StepAPI.GetAPI<StepAPI>());
-        Register("reset", ResetAPI.GetAPI<ResetAPI>());
-        
+        /*
         foreach (KeyValuePair<string, Func<string, string>> kv in apiDictionary) {
             Debug.Log(kv.Key.ToString());
             Debug.Log(kv.Value.ToString());
@@ -32,7 +27,7 @@ public class APIManager
         Debug.Log("test exec timescale");
         string ret = apiDictionary["timeScale"]("{\"value\": 0.666}");
         Debug.Log($"test exec timescale ok, ret : {ret} ({ret==null})");
-
+*/
     }
 
     public void Register(string apiName, Func<string, string> api)
@@ -51,4 +46,6 @@ public class APIManager
         Debug.Log($"APIManager : WARNING : {apiName} api not found");
         return "";
     }
+
+    public abstract void RegisterAllApis();
 }
