@@ -867,8 +867,6 @@ GameObject:
   - component: {fileID: 1076631004}
   - component: {fileID: 1076631003}
   - component: {fileID: 1076631005}
-  - component: {fileID: 1076631006}
-  - component: {fileID: 1076631008}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -963,32 +961,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f67479e2c682d466abb6eb58e576e5ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1076631006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1076631000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 534f1a6e9235d46e9979cdc39b37c45a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  client: {fileID: 1816308907}
---- !u!114 &1076631008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1076631000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50f9efd299ae4465185f58461629ea4b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  newTimeScale: 1
 --- !u!1 &1087394472 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1907160620012771456, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}

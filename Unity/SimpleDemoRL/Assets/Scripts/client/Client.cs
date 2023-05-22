@@ -100,6 +100,7 @@ public class Client : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.unityLogger.logEnabled = false; // FIXME : rmove this quickfix
         //Action<string> checkAction = Check;
         //apiManager.Register("check", checkAction);
         apiManager = new CustomApiManager(env);

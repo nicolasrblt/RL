@@ -15,6 +15,7 @@ class UnityEnv(SACEnv):
         self.act_high = act_high
         self.sample_act_func = sample_act_func
         self.name = name
+        self.time_scale = 1
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None,) -> tuple[ObsType, dict[str, Any]]:
         return self.communicator.reset()  ## FIXME : reset seems to also return a reward and done flag : remove this
@@ -24,7 +25,7 @@ class UnityEnv(SACEnv):
         return o, r, d, False  ## TODO : replace false by truncated actual value
 
     def get_target_frame_duration(self):
-        return 1/50  ## FIXME : dynamically adjust with timescale
+        return (1/50)/self.time_scale
     
     def get_obs_dim(self):
         return self.obs_dim
@@ -46,3 +47,7 @@ class UnityEnv(SACEnv):
 
     def get_name(self):
         return self.name
+    
+    def set_time_scale(self, ts):
+        self.time_scale = ts
+        self.communicator.set_time_scale(ts)

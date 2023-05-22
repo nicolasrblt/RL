@@ -160,13 +160,9 @@ public class EnvorinmentManager : MonoBehaviour
 
     public void Reset()
     {
-        Debug.Log("Env manager : reset space...");
         spaceManager.Reset();
-        Debug.Log("Env manager : reset goal...");
         goalManager.GenerateTask();
-        Debug.Log("Env manager : reset canvas...");
         textMeshPro.SetText(goalManager.instruction);
-        Debug.Log("Env manager : reset replay...");
         recorder.ResetReplay(goalManager.instruction);
     }
 

@@ -75,4 +75,8 @@ class Simulator:
         
         self.server.send([message.to_json()])
         
+    def set_time_scale(self, ts):
+        ts_message = messages.SingleFieldMessage(ts)
+        message = messages.RequestMessage("timeScale", ts_message.to_json())
+        self.server.send([message.to_json()])
     

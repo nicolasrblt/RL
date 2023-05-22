@@ -11,23 +11,6 @@ public abstract class APIManager
     public APIManager()
     {
         apiDictionary = new Dictionary<string, Func<string, string>>();
-        
-        //Register("test", new TestApi() as API);
-
-        
-        //Register("timeScale", new Func<string, string>((new TimeScaleAPI()).Execute));
-        //Register("test", new Func<string, string>((new TestApi()).Execute));
-
-        /*
-        foreach (KeyValuePair<string, Func<string, string>> kv in apiDictionary) {
-            Debug.Log(kv.Key.ToString());
-            Debug.Log(kv.Value.ToString());
-        }
-        
-        Debug.Log("test exec timescale");
-        string ret = apiDictionary["timeScale"]("{\"value\": 0.666}");
-        Debug.Log($"test exec timescale ok, ret : {ret} ({ret==null})");
-*/
     }
 
     public void Register(string apiName, Func<string, string> api)
