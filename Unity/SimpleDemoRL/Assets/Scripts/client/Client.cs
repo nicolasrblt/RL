@@ -56,6 +56,8 @@ public class Client : MonoBehaviour
                 string json = stringBuilder.ToString();
 
                 RequestMessage message = RequestMessage.FromJson(json);
+                //string debug = message.api=="step"? "":message.parameter;
+                //Debug.Log($"{message.api}({debug})");
                 UnityMainThreadDispatcher.Instance().Enqueue(()=>CallAPI(message));
             }
         }
@@ -63,7 +65,7 @@ public class Client : MonoBehaviour
 
     private void CallAPI(RequestMessage message)
     {
-        Debug.Log("calling "+message.api+" | "+message.parameter);
+        //Debug.Log("calling "+message.api+" | "+message.parameter);
         string ret = apiManager.Call(message.api, message.parameter);
         if (ret != null) {
             ResponseMessage responseMessage = new ResponseMessage();
@@ -100,14 +102,14 @@ public class Client : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.unityLogger.logEnabled = false; // FIXME : rmove this quickfix
+        Debug.unityLogger.logEnabled = true; // FIXME : rmove this quickfix
         //Action<string> checkAction = Check;
         //apiManager.Register("check", checkAction);
         apiManager = new CustomApiManager(env);
         apiManager.RegisterAllApis();
         Connect();
-        Action<string> shutdown = ShutdownSocket;
-        //apiManager.Register("shutdown", shutdown);  // TODO fix api
+        (new ShutdownAPI(this)).Register("shutdown", apiManager);
+
     }
 
     // Update is called once per frame

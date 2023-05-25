@@ -72,6 +72,14 @@ public class Recorder : MonoBehaviour
         return last64;
     }
 
+    private string GenerateName()
+    {
+        string date = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string replayName = "Replay_" + date;
+
+        return replayName;
+    }
+
     public void SaveReplay(string fileName)
     {
         string json = JsonUtility.ToJson(replay);

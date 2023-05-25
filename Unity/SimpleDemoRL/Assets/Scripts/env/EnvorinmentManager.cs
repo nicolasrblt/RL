@@ -15,155 +15,73 @@ public class EnvorinmentManager : MonoBehaviour
     public DummyAI dummyAI;
     public Recorder recorder;
     public TextMeshProUGUI textMeshPro;
-    public bool playMod;
-    public float defaultTimeScale = 1f;
+    public TextMeshProUGUI textMeshProRew;
+    public bool manualControl = false;
+    /////////////////////////////////////////
+    private float defaultTimeScale = 1f;
     private float timeSinceLastStep = 0f;
-    // Start is called before the first frame update
-    void Start()
+    private AgentTask task;
+    private EnvState currState;
+    private EnvState prevState;
+    private AgentAction prevAction;
+    private AgentAction nextAction;
+
+
+    public void Step(AgentAction action)
     {
-        Action<string> resetAction = ResetAPI;
-        Action<string> stepAction = StepAPI;
-
-        //client.apiManager.Register("reset", resetAction);  // TODO put these apis elsewhere
-        //client.apiManager.Register("step", stepAction);
-    }
-
-    public void ResetAPI(string parameter)
-    {
-        Reset();
-        ObservationMessage observationMessage = GetObservation();
-
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.value = observationMessage.ToJson();
-        client.Send(responseMessage);
-    }
-
-    public void StepAPI(string parameter)
-    {
-        ControllMessage controllMessage = ControllMessage.FromJson(parameter);
-        Step(controllMessage);
-        ObservationMessage observationMessage = GetObservation();
-
-
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.value = observationMessage.ToJson();
-        client.Send(responseMessage);
-    }
-
-    public void Step(ControllMessage controllMessage)
-    {
-        controller.moveInput = controllMessage.moveInput;
-        controller.turnInput = controllMessage.turnInput;
-        //controller.Step();
-    }
-
-    public ObservationMessage GetObservation()
-    {
-        ObservationMessage observationMessage = new ObservationMessage();
-        observationMessage.agentPostion = spaceManager.agent.transform.position;
-        observationMessage.agentRotation = spaceManager.agent.transform.rotation.eulerAngles;
-
-        observationMessage.velocity = controller.carRigidbody.velocity;
-        observationMessage.angularVelocity = controller.carRigidbody.angularVelocity;
-
-        observationMessage.redBallPosition = spaceManager.redBall.transform.position;
-        observationMessage.blueBallPosition = spaceManager.blueBall.transform.position;
-        observationMessage.greenBallPosition = spaceManager.greenBall.transform.position;
-
-        observationMessage.grayAreaPosition = spaceManager.grayArea.transform.position;
-        observationMessage.orangeAreaPosition = spaceManager.orangeArea.transform.position;
-        observationMessage.whiteAreaPosition = spaceManager.whiteArea.transform.position;
-
-        
-        float reward;
-        bool terminate;
-
-        (terminate, reward) = EndGame();
-
-        observationMessage.terminate = terminate;
-        observationMessage.reward = reward;
-
-        return observationMessage;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {       
-        //if (EndGame())
-        //{
-        //    Reset();
-        //}
-
-        //Debug.Log(rewardCalculator.GetInstructionTensor(goalManager.task));
-    }
-
-    void FixedUpdate()
-    {
-        
-    }
-
-    private string GenerateName()
-    {
-        string date = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        string replayName = "Replay_" + date;
-
-        return replayName;
-    }
-
-    private (bool, float) EndGame()
-    {
-        bool terminated = false;
-
-        if (goalManager.func(goalManager.targetObject, goalManager.areaObject))
-        {
-            return (true, 1f);
-        }
-
-        if (OutSidePlane(spaceManager.agent))
-        {
-            return (true, -1f);
-        }
-
-        if (OutSidePlane(spaceManager.redBall))
-        {
-            return (true, -1f);
-        }
-        /*
-        if (OutSidePlane(spaceManager.blueBall))
-        {
-            return true;
-        }
-
-        if (OutSidePlane(spaceManager.greenBall))
-        {
-            return true;
-        }
-        */
-
-        if (recorder.GetReplaySize() > 1000)
-        {
-            return (true, -1f);
-        }
-
-        return (terminated, 0);
-    }
-
-    private bool OutSidePlane(GameObject gameObject)
-    {
-        if (Mathf.Abs(gameObject.transform.position.x) > 10 || Mathf.Abs(gameObject.transform.position.z) > 10)
-        {
-            return true;
-        }
-
-        return false;
+        controller.moveInput = action.moveInput;
+        controller.turnInput = action.turnInput;
+        prevAction = action;
+        createCurrentState();
+        textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
     }
 
     public void Reset()
     {
         spaceManager.Reset();
         goalManager.GenerateTask();
-        textMeshPro.SetText(goalManager.instruction);
-        recorder.ResetReplay(goalManager.instruction);
+        //textMeshPro.SetText(goalManager.instruction);
+        //recorder.ResetReplay(goalManager.instruction);
+        textMeshPro.SetText(task.getDisplayName());
+        recorder.ResetReplay(task.getDisplayName());
+        prevAction = new AgentAction();
+        createCurrentState(reset: true);
+    }
+
+    public EnvState getCurrentState()
+    {
+        return currState;
+    }
+
+    private void createCurrentState(bool reset=false)
+    {
+        Debug.Log("creating current state");
+        prevState = currState;
+        EnvState state = new EnvState();
+
+        state.agentPostion = spaceManager.agent.transform.position;
+        state.agentRotation = spaceManager.agent.transform.rotation.eulerAngles;
+
+        state.velocity = controller.carRigidbody.velocity;
+        state.angularVelocity = controller.carRigidbody.angularVelocity;
+
+        state.redBallPosition = spaceManager.redBall.transform.position;
+        state.blueBallPosition = spaceManager.blueBall.transform.position;
+        state.greenBallPosition = spaceManager.greenBall.transform.position;
+
+        state.grayAreaPosition = spaceManager.grayArea.transform.position;
+        state.orangeAreaPosition = spaceManager.orangeArea.transform.position;
+        state.whiteAreaPosition = spaceManager.whiteArea.transform.position;
+
+        state.agentOutsidePlane = spaceManager.OutSidePlane(spaceManager.agent);
+        state.redBallOutsidePlane = spaceManager.OutSidePlane(spaceManager.redBall);
+        
+        if (!reset)
+        {
+            state.terminate = task.isFail(state) || task.isSuccess(state);
+            state.reward = task.getReward(prevState, prevAction, state);
+        }
+        currState = state;
     }
 
     public void Pause(bool pause) {
@@ -186,4 +104,30 @@ public class EnvorinmentManager : MonoBehaviour
         #endif
     }
 
+    void Update()
+    {
+        if (manualControl) {
+            nextAction.moveInput = Input.GetAxis("Vertical");
+            nextAction.turnInput = Input.GetAxis("Horizontal");            
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (manualControl) {
+            Step(nextAction);
+            if (currState.terminate) {
+                Reset();
+            }
+        }
+    }
+
+    void Start()
+    {
+        nextAction = new AgentAction();
+        task = new PushInTask();
+        if (manualControl) {
+            Reset();
+        }
+    }
 }

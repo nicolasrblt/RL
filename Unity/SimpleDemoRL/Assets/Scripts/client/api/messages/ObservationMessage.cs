@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class ObservationMessage
+public class EnvState
 {
     public Vector3 agentPostion;
     public Vector3 agentRotation;
@@ -13,13 +13,15 @@ public class ObservationMessage
     public Vector3 grayAreaPosition;
     public Vector3 orangeAreaPosition;
     public Vector3 whiteAreaPosition;
+    public bool agentOutsidePlane;
+    public bool redBallOutsidePlane;
     public bool terminate;
     public float reward;
 
 
-    public static ObservationMessage FromJson(string json)
+    public static EnvState FromJson(string json)
     {
-        return JsonUtility.FromJson<ObservationMessage>(json);
+        return JsonUtility.FromJson<EnvState>(json);
     }
 
     public string ToJson()

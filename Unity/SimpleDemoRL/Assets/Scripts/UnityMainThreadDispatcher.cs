@@ -26,7 +26,7 @@ using System;
 /// </summary>
 public class UnityMainThreadDispatcher : MonoBehaviour {
 
-	private static readonly Queue<Action> _executionQueue = new Queue<Action>();
+	private static readonly Queue<System.Action> _executionQueue = new Queue<System.Action>();
 
 	public void Update() {
 		lock(_executionQueue) {
@@ -52,11 +52,11 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
         /// Locks the queue and adds the Action to the queue
 	/// </summary>
 	/// <param name="action">function that will be executed from the main thread.</param>
-	public void Enqueue(Action action)
+	public void Enqueue(System.Action action)
 	{
 		Enqueue(ActionWrapper(action));
 	}
-	IEnumerator ActionWrapper(Action a)
+	IEnumerator ActionWrapper(System.Action a)
 	{
 		a();
 		yield return null;

@@ -22,11 +22,18 @@ public abstract class APIManager
     {
         if (apiDictionary.ContainsKey(apiName))  // TODO try removing multithreading
         {
-            Debug.Log($"APIManager : found {apiName}, calling it...");
+            //Debug.Log($"APIManager : found {apiName}, calling it...");
             //UnityMainThreadDispatcher.Instance().Enqueue(() => apiDictionary[apiName].Execute(parameter));
-            return apiDictionary[apiName](parameter);
+            try
+            {
+                return apiDictionary[apiName](parameter);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError($"Exception raised while trying to execute {apiName} with {parameter} : \n {e.Message}");
+            }
         }
-        Debug.Log($"APIManager : WARNING : {apiName} api not found");
+        Debug.LogWarning($"APIManager : WARNING : {apiName} api not found");
         return "";
     }
 

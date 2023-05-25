@@ -90,6 +90,16 @@ public class SpaceManager : MonoBehaviour
         }
     }
 
+    public bool OutSidePlane(GameObject gameObject)
+    {
+        if (Mathf.Abs(gameObject.transform.position.x) > 10 || Mathf.Abs(gameObject.transform.position.z) > 10)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public void Reset()
     {
         PlaceAgent();

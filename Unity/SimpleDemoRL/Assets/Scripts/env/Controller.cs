@@ -10,6 +10,7 @@ public class Controller : MonoBehaviour
     public float moveInput; // input for forward movement
     public float turnInput; // input for turning
     public bool manualControl = false;
+    public bool doLog = false;
 
     void Start()
     {
@@ -20,8 +21,8 @@ public class Controller : MonoBehaviour
     {
         if (manualControl) {
         // get input for forward movement and turning
-        moveInput = Input.GetAxis("Vertical");
-        turnInput = Input.GetAxis("Horizontal");            
+        //moveInput = Input.GetAxis("Vertical");
+        //turnInput = Input.GetAxis("Horizontal");            
         }
 
     }
@@ -29,6 +30,10 @@ public class Controller : MonoBehaviour
     void FixedUpdate()
     {
         // move the car forward or backward
+        if (doLog) {
+            doLog = false;
+            Debug.Log("controller fixed update");
+        }
         Vector3 movement = transform.forward * moveInput * speed;
         carRigidbody.AddForce(movement);
 
