@@ -14,6 +14,7 @@ class TrainingParameters:
     start_steps: int = 10000
     update_after: int = 1000
     update_every: int = 50
+    action_every: int = 1
     max_ep_len: int = 1000
     replay_size: int = int(1e6)
     batch_size: int = 100
@@ -121,4 +122,6 @@ class Policy(nn.Module):  # TODO rename Gaussian MLP ?
 
         action = torch.tanh(action)  # normalize action to action space bounds
         action = self.act_high * action
+        #if probabilistic and not with_log_prob:
+        #    print(f"pi : {mu, std}")
         return action, logp_pi

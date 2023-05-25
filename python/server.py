@@ -7,6 +7,7 @@ class Client:
     def __init__(self, socket, address):
         self.socket = socket
         self.address = address
+        self.socket.settimeout(1)
         
     def close(self):
         self.socket.close()

@@ -60,13 +60,35 @@ class Simulator:
             
         return pharse_observations(observation_message)
     
+
+    def _reset(self):  # for debug purpose
+        message = messages.RequestMessage("reset", "")
+        
+        self.server.send([message.to_json()])
+        
+        response = messages.ResponseMessage.from_json(self.server.recive()[0])
+        observation_message = messages.ObservationMessage.from_json(response.value)
+        
+        return observation_message
+    
+
+    def _step(self, moveInput, turnInput):  # for debug purpose
+        controll_message = messages.ControllMessage(moveInput, turnInput)
+        message = messages.RequestMessage("step", controll_message.to_json())
+        
+        self.server.send([message.to_json()])
+        
+        response = messages.ResponseMessage.from_json(self.server.recive()[0])
+        observation_message = messages.ObservationMessage.from_json(response.value) 
+        return observation_message
+       
     def pause(self):
-        message = messages.RequestMessage("pause", "pause")
+        message = messages.RequestMessage("pause", messages.SingleFieldMessage(True).to_json())
         
         self.server.send([message.to_json()])
         
     def resume(self):
-        message = messages.RequestMessage("pause", "resume")
+        message = messages.RequestMessage("pause", messages.SingleFieldMessage(False).to_json())
         
         self.server.send([message.to_json()])
         
