@@ -4,10 +4,7 @@
 using UnityEngine;
 
 public class PushInTask: AgentTask
-{
-    string displayName = "Push the red ball in the gray area";
-
-    public override float getReward(EnvState prevState, AgentAction action, EnvState currState)
+{    public override float getReward(EnvState prevState, AgentAction action, EnvState currState)
     {
         if (isSuccess(currState)) {
             return 20;
@@ -33,5 +30,10 @@ public class PushInTask: AgentTask
     public override bool isFail(EnvState state)
     {
         return state.agentOutsidePlane || state.redBallOutsidePlane;
+    }
+
+    void Awake()
+    {
+        displayName = "Push the red ball in the gray area";
     }
 }

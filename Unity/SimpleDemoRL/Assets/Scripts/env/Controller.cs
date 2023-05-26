@@ -10,7 +10,6 @@ public class Controller : MonoBehaviour
     public float moveInput; // input for forward movement
     public float turnInput; // input for turning
     public bool manualControl = false;
-    public bool doLog = false;
 
     void Start()
     {
@@ -30,10 +29,6 @@ public class Controller : MonoBehaviour
     void FixedUpdate()
     {
         // move the car forward or backward
-        if (doLog) {
-            doLog = false;
-            Debug.Log("controller fixed update");
-        }
         Vector3 movement = transform.forward * moveInput * speed;
         carRigidbody.AddForce(movement);
 
@@ -47,6 +42,5 @@ public class Controller : MonoBehaviour
             carRigidbody.velocity = Vector3.zero;
             carRigidbody.angularVelocity = Vector3.zero;
         }
-
     }
 }
