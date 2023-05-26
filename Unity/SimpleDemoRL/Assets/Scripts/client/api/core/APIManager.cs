@@ -4,37 +4,29 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+
 public abstract class APIManager
 {
-    private Dictionary<string, Func<string, string>> apiDictionary;
+    private Dictionary<string, ApiTuple> apiDictionary;
 
     public APIManager()
     {
-        apiDictionary = new Dictionary<string, Func<string, string>>();
+        apiDictionary = new Dictionary<string, ApiTuple>();
     }
 
-    public void Register(string apiName, Func<string, string> api)
+    public void Register(string apiName, ApiTuple api)
     {
         apiDictionary[apiName] = api;
     }
 
-    public string Call(string apiName, string parameter)
+    public ApiTuple GetApi(string apiName)
     {
-        if (apiDictionary.ContainsKey(apiName))  // TODO try removing multithreading
+        if (apiDictionary.ContainsKey(apiName))
         {
-            //Debug.Log($"APIManager : found {apiName}, calling it...");
-            //UnityMainThreadDispatcher.Instance().Enqueue(() => apiDictionary[apiName].Execute(parameter));
-            try
-            {
-                return apiDictionary[apiName](parameter);
-            }
-            catch(Exception e)
-            {
-                Debug.LogError($"Exception raised while trying to execute {apiName} with {parameter} : \n {e.Message}");
-            }
+            return apiDictionary[apiName];
         }
         Debug.LogWarning($"APIManager : WARNING : {apiName} api not found");
-        return "";
+        return new ApiTuple();
     }
 
     public abstract void RegisterAllApis();

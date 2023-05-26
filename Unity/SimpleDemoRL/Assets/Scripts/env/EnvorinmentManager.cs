@@ -19,7 +19,6 @@ public class EnvorinmentManager : MonoBehaviour
     public bool manualControl = false;
     /////////////////////////////////////////
     private float defaultTimeScale = 1f;
-    private float timeSinceLastStep = 0f;
     private AgentTask task;
     private EnvState currState;
     private EnvState prevState;
@@ -32,7 +31,7 @@ public class EnvorinmentManager : MonoBehaviour
         controller.moveInput = action.moveInput;
         controller.turnInput = action.turnInput;
         prevAction = action;
-        createCurrentState();
+        //createCurrentState();
         textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
     }
 
@@ -53,9 +52,8 @@ public class EnvorinmentManager : MonoBehaviour
         return currState;
     }
 
-    private void createCurrentState(bool reset=false)
+    public void createCurrentState(bool reset=false)
     {
-        Debug.Log("creating current state");
         prevState = currState;
         EnvState state = new EnvState();
 
@@ -98,9 +96,9 @@ public class EnvorinmentManager : MonoBehaviour
     public void QuitGame()
     {
         #if UNITY_EDITOR
-                EditorApplication.ExitPlaymode();
+            EditorApplication.ExitPlaymode();
         #else
-                Application.Quit();
+            Application.Quit();
         #endif
     }
 
@@ -126,6 +124,7 @@ public class EnvorinmentManager : MonoBehaviour
     {
         nextAction = new AgentAction();
         task = new PushInTask();
+        createCurrentState(reset: true);
         if (manualControl) {
             Reset();
         }

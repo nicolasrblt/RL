@@ -12,7 +12,6 @@ public class CustomApiManager : APIManager
     }
 
     public override void RegisterAllApis() {
-        Register("test", TestApi.GetAPI<TestApi>());
         (new TimeScaleAPI(env)).Register("timeScale", this);
         (new PauseAPI(env)).Register("pause", this);
         (new StepAPI(env)).Register("step", this);

@@ -4,18 +4,27 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public abstract class BaseEnvManagerAPI<ArgType, RetType>: BaseAPI<ArgType, RetType>
+public abstract class EnvAPI<ArgType, RetType>: Api<ArgType, RetType>
 {
     protected EnvorinmentManager env;
 
-    public BaseEnvManagerAPI(EnvorinmentManager target): base()
+    public EnvAPI(EnvorinmentManager target): base()
     {
         env = target;
     }
 }
 
+public abstract class EnvCoroutineAPI<ArgType, RetType>: CoroutineApi<ArgType, RetType>
+{
+    protected EnvorinmentManager env;
 
-public class TimeScaleAPI: BaseEnvManagerAPI<SingleFieldMessage<float>, string>
+    public EnvCoroutineAPI(EnvorinmentManager target): base()
+    {
+        env = target;
+    }
+}
+
+public class TimeScaleAPI: EnvAPI<SingleFieldMessage<float>, string>
 {
     public TimeScaleAPI(EnvorinmentManager env): base(env) {}
     public override string Handle(SingleFieldMessage<float> msg) {
@@ -25,28 +34,32 @@ public class TimeScaleAPI: BaseEnvManagerAPI<SingleFieldMessage<float>, string>
     }
 }
 
-public class StepAPI: BaseEnvManagerAPI<AgentAction, EnvState>
+public class StepAPI: EnvCoroutineAPI<AgentAction, EnvState>
 {
     public StepAPI(EnvorinmentManager env): base(env) {}
-    public override EnvState Handle(AgentAction msg) {
+    public override IEnumerator Handle(AgentAction msg) {
         //Debug.Log($"control : {msg.moveInput}, {msg.turnInput}");
         env.Step(msg);
-        return env.getCurrentState();
+        yield return new WaitForFixedUpdate();
+        env.createCurrentState();
+        returnValue = env.getCurrentState();
     }
 }
 
-public class ResetAPI: BaseEnvManagerAPI<string, EnvState>
+public class ResetAPI: EnvCoroutineAPI<string, EnvState>
 {
 
     public ResetAPI(EnvorinmentManager env): base(env) {}
-    public override EnvState Handle(string msg) {
+    public override IEnumerator Handle(string msg) {
         //Debug.Log($"reset");
         env.Reset();
-        return env.getCurrentState();
+        yield return new WaitForFixedUpdate();
+        env.createCurrentState(true);
+        returnValue = env.getCurrentState();
     }
 }
 
-public class PauseAPI: BaseEnvManagerAPI<SingleFieldMessage<bool>, string>
+public class PauseAPI: EnvAPI<SingleFieldMessage<bool>, string>
 {
     public PauseAPI(EnvorinmentManager env): base(env) {}
     public override string Handle(SingleFieldMessage<bool> msg) {
@@ -57,7 +70,7 @@ public class PauseAPI: BaseEnvManagerAPI<SingleFieldMessage<bool>, string>
 }
 
 
-public class ShutdownAPI: BaseAPI<string, string>
+public class ShutdownAPI: Api<string, string>
 {
     Client client;
     public ShutdownAPI(Client c): base()

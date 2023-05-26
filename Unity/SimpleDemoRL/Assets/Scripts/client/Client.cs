@@ -12,12 +12,10 @@ public class Client : MonoBehaviour
 {
     public string host;
     public int port;
-    //public Manager manager;
     public EnvorinmentManager env;
 
     private TcpClient client;
     private NetworkStream stream;
-    //private Thread receiveThread;
     private Task task;
     private bool stop = false;
     private CustomApiManager apiManager;
@@ -29,8 +27,6 @@ public class Client : MonoBehaviour
         stream = client.GetStream();
         task = new Task(ReceiveMessage);
         task.Start();
-        //receiveThread = new Thread(ReceiveMessage);
-        //receiveThread.Start();
     }
 
     private void ReceiveMessage()
@@ -54,19 +50,17 @@ public class Client : MonoBehaviour
             if (stringBuilder.Length > 0)
             {
                 string json = stringBuilder.ToString();
-
                 RequestMessage message = RequestMessage.FromJson(json);
-                //string debug = message.api=="step"? "":message.parameter;
-                //Debug.Log($"{message.api}({debug})");
-                UnityMainThreadDispatcher.Instance().Enqueue(()=>CallAPI(message));
+                UnityMainThreadDispatcher.Instance().Enqueue(()=>StartCoroutine(CallAPI(message))); // run api in a coroutine in main thread
             }
         }
     }
 
-    private void CallAPI(RequestMessage message)
+    private IEnumerator CallAPI(RequestMessage message)
     {
-        //Debug.Log("calling "+message.api+" | "+message.parameter);
-        string ret = apiManager.Call(message.api, message.parameter);
+        ApiTuple api = apiManager.GetApi(message.api);
+        yield return api.runner(message.parameter);
+        string ret = api.result();
         if (ret != null) {
             ResponseMessage responseMessage = new ResponseMessage();
             responseMessage.value = ret;
@@ -76,18 +70,12 @@ public class Client : MonoBehaviour
 
     public void ShutdownSocket(string parameter)
     {
-        //stop = true;
-
-        //if (!receiveThread.Join(5000)) // Wait for up to 5 seconds for the thread to stop
-        //{
-        //    receiveThread.Abort(); // Force the thread to stop if it didn't within the given time
-        //}
         client.Close();
 
         #if UNITY_EDITOR  // FIXME : quitting app shouldn't be client responsability ?
             EditorApplication.ExitPlaymode();
         #else
-                Application.Quit();
+            Application.Quit();
         #endif
     }
 

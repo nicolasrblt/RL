@@ -25,7 +25,7 @@ class UnityEnv(SACEnv):
         return o, r, d, False  ## TODO : replace false by truncated actual value
 
     def get_target_frame_duration(self):
-        return (1/50)/self.time_scale
+        return 0
     
     def get_obs_dim(self):
         return self.obs_dim

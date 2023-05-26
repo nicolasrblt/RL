@@ -5,27 +5,59 @@ using UnityEngine;
 
 public abstract class APIMessage{}  // TODO remove this, unnecessary
 
-public abstract class BaseAPI<ArgType, RetType>
-{
 
-    public abstract RetType Handle(ArgType arg);
-
-    public string Execute(string strArg) {
-        ArgType arg = JsonUtility.FromJson<ArgType>(strArg);
-        RetType ret = Handle(arg);
-        return ret != null ? JsonUtility.ToJson(ret) : null;
+public struct ApiTuple {
+    public Func<string> result;
+    public Func<string, IEnumerator> runner;
+    public ApiTuple(Func<string> res, Func<string, IEnumerator> run) {
+        result = res;
+        runner = run;
     }
+}
 
+public abstract class BaseApi<ArgType, RetType>
+{
+    protected RetType returnValue;
+
+    public abstract IEnumerator Execute(string strArg);
+
+    public string GetResult() {
+        return returnValue != null ? JsonUtility.ToJson(returnValue) : null;
+    }
 
     // two utility functions to help register api in manager.
     // Second one lets user instanciate API himself, allowing to give it parameters
-    public static Func<string, string> GetAPI<T>() where T: BaseAPI<ArgType, RetType>, new()
+    public static ApiTuple GetAPI<T>() where T: BaseApi<ArgType, RetType>, new()
     {
-        return new Func<string, string>(new T().Execute);
+        T api = new T();
+        return new ApiTuple(new Func<string>(api.GetResult), new Func<string, IEnumerator>(api.Execute));
     }
 
     public void Register(String name, APIManager manager)
     {
-        manager.Register(name, new Func<string, string>(Execute));
+        manager.Register(name, new ApiTuple(new Func<string>(GetResult), new Func<string, IEnumerator>(Execute)));
+    }
+}
+
+
+public abstract class Api<ArgType, RetType>: BaseApi<ArgType, RetType>
+{
+    public abstract RetType Handle(ArgType arg);
+
+    public override IEnumerator Execute(string strArg) {
+        ArgType arg = JsonUtility.FromJson<ArgType>(strArg);
+        returnValue = Handle(arg);
+        yield return null;
+    }
+}
+
+
+public abstract class CoroutineApi<ArgType, RetType>: BaseApi<ArgType, RetType>
+{
+    public abstract IEnumerator Handle(ArgType arg);
+
+    public override IEnumerator Execute(string strArg) {
+        ArgType arg = JsonUtility.FromJson<ArgType>(strArg);
+        yield return Handle(arg);
     }
 }
