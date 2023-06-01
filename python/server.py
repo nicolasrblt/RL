@@ -12,14 +12,24 @@ class Client:
     def close(self):
         self.socket.close()
 
-    def receive(self, buffer_size=4096):
+    def receive(self):
         data = b''
-        while True:
-            part = self.socket.recv(buffer_size)
-            data += part
-            if len(part) < buffer_size:
-                break
+        lenBuffer = b''
+        lenBufferLen = 4
+
+        while len(lenBuffer) != lenBufferLen:
+            lenBuffer+= self.socket.recv(lenBufferLen-len(lenBuffer))
+        msgLen = int.from_bytes(lenBuffer, 'little', signed=False)
+
+        while len(data) != msgLen:
+            data += self.socket.recv(msgLen-len(data))
+
         return data
+    
+    def send(self, data):
+        data = (len(data).to_bytes(4, 'little', signed=False)) + data
+        self.socket.sendall(data)
+
 
 class Server:
     def __init__(self, host, port):
@@ -47,8 +57,7 @@ class Server:
 
     def send(self, messages):
         for client, message in zip(self.clients, messages):
-            data = message.encode()
-            client.socket.sendall(data)
+            client.send(message.encode())
             
     def recive(self):
         messeges = []
@@ -58,11 +67,9 @@ class Server:
         return messeges
 
     def stop_server(self):
-        
-        #for client in self.clients:
-        #    client.close()
-        self.clients = []
         self.stop = True
-        #self.process.join()
         self.server_socket.close()
+        for client in self.clients:
+            client.socket.close()
+        self.clients = []
         

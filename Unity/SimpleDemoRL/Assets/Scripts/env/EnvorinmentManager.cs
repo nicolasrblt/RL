@@ -18,6 +18,7 @@ public class EnvorinmentManager : MonoBehaviour
     public TextMeshProUGUI textMeshPro;
     public TextMeshProUGUI textMeshProRew;
     public bool manualControl = false;
+    public bool rewardServerEnabled = true;
     /////////////////////////////////////////
     private float defaultTimeScale = 1f;
     private AgentTask task;
@@ -146,7 +147,7 @@ public class EnvorinmentManager : MonoBehaviour
         if (rewardCalculateFreq >= 0.08f) // 1 / 50 = 0.02
         {
             rewardCalculateFreq -= 0.08f;
-            if (recorder.GetReplaySize() > 0)
+            if (recorder.GetReplaySize() > 0 & rewardServerEnabled)
             {
                 var steps = recorder.SampleBuffer();
                 serverAPI.SendRequest(goalManager.instruction, steps);
