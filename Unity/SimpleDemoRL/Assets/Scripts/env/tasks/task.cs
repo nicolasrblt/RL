@@ -5,10 +5,7 @@ using UnityEngine;
 
 public abstract class AgentTask
 {
-    protected string displayName = "No display name specified";
-    public string getDisplayName() {
-        return displayName;
-    }
+    public abstract string GetDisplayName();
     public virtual float getReward(EnvState prevState, AgentAction action, EnvState currState)
     {
         return (isSuccess(currState)? 1:0) - (isFail(currState)?1:0);

@@ -90,7 +90,7 @@ public class SpaceManager : MonoBehaviour
         }
     }
 
-    public bool OutSidePlane(GameObject gameObject)
+    public bool OutSidePlane(GameObject gameObject, int offset=0)
     {
         if (Mathf.Abs(gameObject.transform.position.x) > 10 || Mathf.Abs(gameObject.transform.position.z) > 10)
         {
@@ -100,14 +100,30 @@ public class SpaceManager : MonoBehaviour
         return false;
     }
 
+    public bool OutSidePlane(Vector3 position, int offset=0)
+    {
+        return (Mathf.Abs(position.x) > 10-offset || Mathf.Abs(position.z) > 10-offset);
+    }
+
     public void Reset()
     {
-        PlaceAgent();
-        PlaceSphereObject(redBall);
-        //PlaceSphereObject(blueBall);
-        //PlaceSphereObject(greenBall);
-        PlaceArea(grayArea);
-        //PlaceArea(orangeArea);
-        //PlaceArea(whiteArea);
+        float dist0 = 5.0f;
+        Vector3 agentPos;
+        Vector3 areaPos;
+        do {
+            PlaceSphereObject(redBall);
+
+            agentPos = redBall.transform.position + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
+            areaPos  = redBall.transform.position + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
+            agentPos.y = .3f;
+            areaPos.y = 0.01f;
+        } while (OutSidePlane(agentPos, 2) | OutSidePlane(areaPos, 2) | (agentPos-areaPos).sqrMagnitude < 16);
+        agent.transform.position = agentPos;
+        grayArea.transform.position = areaPos;
+        agent.transform.rotation = RandomRotation();
+
+        Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
+        rigidbody.velocity = Vector3.zero;
+        rigidbody.angularVelocity = Vector3.zero;
     }
 }

@@ -14,6 +14,7 @@ public class EnvorinmentManager : MonoBehaviour
     public GoalManager goalManager;
     public DummyAI dummyAI;
     public Recorder recorder;
+    public RewardServerAPI serverAPI;
     public TextMeshProUGUI textMeshPro;
     public TextMeshProUGUI textMeshProRew;
     public bool manualControl = false;
@@ -25,24 +26,30 @@ public class EnvorinmentManager : MonoBehaviour
     private AgentAction prevAction;
     private AgentAction nextAction;
 
+    private float recordFreq = 0f;
+    private float rewardCalculateFreq = 0f;
 
     public void Step(AgentAction action)
     {
         controller.moveInput = action.moveInput;
         controller.turnInput = action.turnInput;
         prevAction = action;
+        /*recorder.AddStep(controller.moveInput, controller.turnInput,
+            spaceManager.agent.transform.position, spaceManager.agent.transform.rotation.eulerAngles,
+            controller.carRigidbody.velocity, controller.carRigidbody.angularVelocity,
+            spaceManager.redBall.transform.position, spaceManager.blueBall.transform.position,
+            spaceManager.greenBall.transform.position, spaceManager.grayArea.transform.position,
+            spaceManager.orangeArea.transform.position, spaceManager.whiteArea.transform.position);
+        */
         //createCurrentState();
-        textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
+        //textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
     }
 
     public void Reset()
     {
         spaceManager.Reset();
-        goalManager.GenerateTask();
-        //textMeshPro.SetText(goalManager.instruction);
-        //recorder.ResetReplay(goalManager.instruction);
-        textMeshPro.SetText(task.getDisplayName());
-        recorder.ResetReplay(task.getDisplayName());
+        textMeshPro.SetText(task.GetDisplayName());
+        recorder.ResetReplay(task.GetDisplayName());
         prevAction = new AgentAction();
         createCurrentState(reset: true);
     }
@@ -73,6 +80,8 @@ public class EnvorinmentManager : MonoBehaviour
 
         state.agentOutsidePlane = spaceManager.OutSidePlane(spaceManager.agent);
         state.redBallOutsidePlane = spaceManager.OutSidePlane(spaceManager.redBall);
+        state.agentRedBallAngle = Vector3.Angle(spaceManager.agent.transform.forward,
+                                                spaceManager.redBall.transform.position-spaceManager.agent.transform.position);
         
         if (!reset)
         {
@@ -114,8 +123,33 @@ public class EnvorinmentManager : MonoBehaviour
     {
         if (manualControl) {
             Step(nextAction);
+            createCurrentState();
             if (currState.terminate) {
                 Reset();
+            }
+        }
+    
+        recordFreq += Time.fixedDeltaTime;
+        rewardCalculateFreq += Time.fixedDeltaTime;
+
+        if (recordFreq >= 0.02f) // 1 / 50 = 0.02
+        {
+            recordFreq -= 0.02f;
+            recorder.AddStep(controller.moveInput, controller.turnInput,
+                spaceManager.agent.transform.position, spaceManager.agent.transform.rotation.eulerAngles,
+                controller.carRigidbody.velocity, controller.carRigidbody.angularVelocity,
+                spaceManager.redBall.transform.position, spaceManager.blueBall.transform.position,
+                spaceManager.greenBall.transform.position, spaceManager.grayArea.transform.position,
+                spaceManager.orangeArea.transform.position, spaceManager.whiteArea.transform.position);
+        }
+
+        if (rewardCalculateFreq >= 0.08f) // 1 / 50 = 0.02
+        {
+            rewardCalculateFreq -= 0.08f;
+            if (recorder.GetReplaySize() > 0)
+            {
+                var steps = recorder.SampleBuffer();
+                serverAPI.SendRequest(goalManager.instruction, steps);
             }
         }
     }
@@ -125,8 +159,7 @@ public class EnvorinmentManager : MonoBehaviour
         nextAction = new AgentAction();
         task = new PushInTask();
         createCurrentState(reset: true);
-        if (manualControl) {
-            Reset();
-        }
+        Reset();
+        
     }
 }

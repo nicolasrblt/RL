@@ -1002,6 +1002,7 @@ GameObject:
   - component: {fileID: 1076631004}
   - component: {fileID: 1076631003}
   - component: {fileID: 1076631005}
+  - component: {fileID: 1076631006}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -1081,6 +1082,7 @@ MonoBehaviour:
   goalManager: {fileID: 1076631003}
   dummyAI: {fileID: 0}
   recorder: {fileID: 1076631005}
+  serverAPI: {fileID: 1076631006}
   textMeshPro: {fileID: 2114063582}
   textMeshProRew: {fileID: 502157259}
   manualControl: 0
@@ -1096,6 +1098,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f67479e2c682d466abb6eb58e576e5ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1076631006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076631000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79cebabf863e44588bd7bef717f7972b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  apiUrl: http://localhost:8000/predict
+  textMeshPro: {fileID: 502157259}
 --- !u!1 &1087394472 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1907160620012771456, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
@@ -1781,19 +1797,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -3.7493994e-33
-      objectReference: {fileID: 0}
-    - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -6.123234e-17
-      objectReference: {fileID: 0}
-    - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
-      propertyPath: m_LocalRotation.y
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 6.123234e-17
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1241947682009367098, guid: 271c112df7bc1474b94b3b8d7c3eb77c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
