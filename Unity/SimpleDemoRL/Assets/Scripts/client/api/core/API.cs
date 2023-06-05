@@ -5,13 +5,16 @@ using UnityEngine;
 
 public abstract class APIMessage{}  // TODO remove this, unnecessary
 
+public enum DispatchMethod {Update, FixedUpdate, DoNotDispatch}
 
-public struct ApiTuple {
+public struct ApiFacade {
     public Func<string> result;
     public Func<string, IEnumerator> runner;
-    public ApiTuple(Func<string> res, Func<string, IEnumerator> run) {
+    public DispatchMethod dispatchMethod;
+    public ApiFacade(Func<string> res, Func<string, IEnumerator> run, DispatchMethod method) {
         result = res;
         runner = run;
+        dispatchMethod = method;
     }
 }
 
@@ -27,15 +30,19 @@ public abstract class BaseApi<ArgType, RetType>
 
     // two utility functions to help register api in manager.
     // Second one lets user instanciate API himself, allowing to give it parameters
-    public static ApiTuple GetAPI<T>() where T: BaseApi<ArgType, RetType>, new()
+    public static ApiFacade GetAPI<T>() where T: BaseApi<ArgType, RetType>, new()
     {
         T api = new T();
-        return new ApiTuple(new Func<string>(api.GetResult), new Func<string, IEnumerator>(api.Execute));
+        return new ApiFacade(new Func<string>(api.GetResult), new Func<string, IEnumerator>(api.Execute), api.DispatchAt());
     }
 
     public void Register(String name, APIManager manager)
     {
-        manager.Register(name, new ApiTuple(new Func<string>(GetResult), new Func<string, IEnumerator>(Execute)));
+        manager.Register(name, new ApiFacade(new Func<string>(GetResult), new Func<string, IEnumerator>(Execute), DispatchAt()));
+    }
+
+    public virtual DispatchMethod DispatchAt() {
+        return DispatchMethod.Update;
     }
 }
 
@@ -47,7 +54,7 @@ public abstract class Api<ArgType, RetType>: BaseApi<ArgType, RetType>
     public override IEnumerator Execute(string strArg) {
         ArgType arg = JsonUtility.FromJson<ArgType>(strArg);
         returnValue = Handle(arg);
-        yield return null;
+        yield break;
     }
 }
 

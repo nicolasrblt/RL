@@ -72,7 +72,7 @@ public class RewardServerAPI : MonoBehaviour
             }
             else
             {
-                Debug.Log("Response: " + request.downloadHandler.text);
+                //Debug.Log("Response: " + request.downloadHandler.text);
                 var prediction = JsonUtility.FromJson<PredictResponse>(request.downloadHandler.text);
                 textMeshPro.SetText("Reward: " + prediction.predictions.ToString("F4"));
             }

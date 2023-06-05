@@ -10,6 +10,8 @@ public class Controller : MonoBehaviour
     public float moveInput; // input for forward movement
     public float turnInput; // input for turning
     public bool manualControl = false;
+    private int elapsedFU = 0;
+    public bool newInput = false;
 
     void Start()
     {
@@ -28,6 +30,15 @@ public class Controller : MonoBehaviour
 
     void FixedUpdate()
     {
+        //Debug.Log("FFFF ctrlr");
+        if (newInput)
+        {
+            Debug.Log($"{elapsedFU} FU between nlast 2 steps TS={Time.timeScale}");
+            newInput  = false;
+            elapsedFU = 0;
+        }
+        elapsedFU++;
+
         // move the car forward or backward
         Vector3 movement = transform.forward * moveInput * speed;
         carRigidbody.AddForce(movement);

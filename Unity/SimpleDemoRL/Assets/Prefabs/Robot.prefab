@@ -119,6 +119,9 @@ MonoBehaviour:
   speed: 100
   turnSpeed: 50
   carRigidbody: {fileID: 0}
+  moveInput: 0
+  turnInput: 0
+  manualControl: 0
 --- !u!65 &1636761232488594618
 BoxCollider:
   m_ObjectHideFlags: 0

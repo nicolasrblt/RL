@@ -14,6 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/*
+Modified in the context of this project 
+*/
+
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
@@ -27,14 +31,18 @@ using System;
 public class UnityMainThreadDispatcher : MonoBehaviour {
 
 	private static readonly Queue<System.Action> _executionQueue = new Queue<System.Action>();
+	private static readonly Queue<System.Action> _fixedExecutionQueue = new Queue<System.Action>();
 
 	public void Update() {
-		lock(_executionQueue) {
-			while (_executionQueue.Count > 0) {
-				_executionQueue.Dequeue().Invoke();
-			}
-		}
+        //Debug.Log("UUUU Dispatcher");
+        DequeueAll(_executionQueue);
+
 	}
+    void FixedUpdate()
+    {
+        DequeueAll(_fixedExecutionQueue);
+        //Debug.Log("FFFF Dispatcher");
+    }
 
 	/// <summary>
 	/// Locks the queue and adds the IEnumerator to the queue
@@ -48,18 +56,40 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 		}
 	}
 
-        /// <summary>
-        /// Locks the queue and adds the Action to the queue
+    /// <summary>
+    /// Locks the queue and adds the Action to the queue
 	/// </summary>
 	/// <param name="action">function that will be executed from the main thread.</param>
 	public void Enqueue(System.Action action)
 	{
 		Enqueue(ActionWrapper(action));
 	}
+
+	/// <summary>
+	/// Locks the fixed queue and adds the IEnumerator to the queue
+	/// </summary>
+	/// <param name="action">IEnumerator function that will be executed from the main thread at fixed update.</param>
+    public void FixedEnqueue(IEnumerator action) {
+		lock (_fixedExecutionQueue) {
+			_fixedExecutionQueue.Enqueue (() => {
+				StartCoroutine (action);
+			});
+		}
+	}
+
+    /// <summary>
+    /// Locks the fixed queue and adds the Action to the queue
+	/// </summary>
+	/// <param name="action">function that will be executed from the main thread at fixed update.</param>
+	public void FixedEnqueue(System.Action action)
+	{
+		FixedEnqueue(ActionWrapper(action));
+	}
+
 	IEnumerator ActionWrapper(System.Action a)
 	{
 		a();
-		yield return null;
+		yield break;
 	}
 
 
@@ -75,6 +105,15 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 		}
 		return _instance;
 	}
+
+    public static void DequeueAll(Queue<System.Action> queue)
+    {
+		lock(queue) {
+			while (queue.Count > 0) {
+				queue.Dequeue().Invoke();
+			}
+		}
+    }
 
 
 	void Awake() {

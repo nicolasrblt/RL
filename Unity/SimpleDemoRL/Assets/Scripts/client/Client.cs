@@ -52,22 +52,22 @@ public class Client : MonoBehaviour
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(lenBuffer);
             msgLen = (int)BitConverter.ToUInt32(lenBuffer, 0); // TODO : handle messages too big : overflow on sign bit / too laggy to handle
-            Debug.Log($"incomming msg size  : {msgLen} ({BitConverter.ToString(lenBuffer)})");
+            //Debug.Log($"incomming msg size  : {msgLen} ({BitConverter.ToString(lenBuffer)})");
 
             
             
             
             bytesRead = 0;
-            Debug.Log("read loop in");
+            //Debug.Log("read loop in");
             while (msgLen > 0)
             {
-                Debug.Log($"read loop inside ({stream.DataAvailable})");
+                //Debug.Log($"read loop inside ({stream.DataAvailable})");
                 bytesRead = stream.Read(dataBuffer, 0, Mathf.Min(dataBuffer.Length, msgLen));
-                Debug.Log($"did read {bytesRead}B");
+                //Debug.Log($"did read {bytesRead}B");
                 stringBuilder.Append(System.Text.Encoding.UTF8.GetString(dataBuffer, 0, bytesRead));
                 msgLen -= bytesRead;
             }
-            Debug.Log("read loop out");
+            //Debug.Log("read loop out");
 
 
 
@@ -75,12 +75,22 @@ public class Client : MonoBehaviour
             {
                 try {
                 string json = stringBuilder.ToString();
-                Debug.Log($"json : {json}");
+                //Debug.Log($"json : {json}");
                 RequestMessage message = RequestMessage.FromJson(json);
-                Debug.Log($"message : {message.api}, {message.parameter}");
+                //Debug.Log($"message : {message.api}, {message.parameter}");
                 // TODO : rethink the use of corroutines here : UnityMainThreadDispatcher already runs actions as coroutines
-                UnityMainThreadDispatcher.Instance().Enqueue(()=>StartCoroutine(CallAPI(message))); // run api in a coroutine in main thread
-                Debug.Log("action dispatched");                    
+                ApiFacade api = apiManager.GetApi(message.api);
+                switch (api.dispatchMethod)
+                {
+                    case DispatchMethod.Update:
+                        UnityMainThreadDispatcher.Instance().Enqueue(()=>StartCoroutine(CallAPI(api, message))); // run api in a coroutine in main thread
+                        break;
+                    case DispatchMethod.FixedUpdate:
+                        UnityMainThreadDispatcher.Instance().FixedEnqueue(()=>StartCoroutine(CallAPI(api, message))); // run api in a coroutine in main thread
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
                 } catch (Exception exception)
                 {
                     Debug.LogException(exception);
@@ -89,10 +99,9 @@ public class Client : MonoBehaviour
         }
     }
 
-    private IEnumerator CallAPI(RequestMessage message)
+    private IEnumerator CallAPI(ApiFacade api, RequestMessage message)
     {
-        ApiTuple api = apiManager.GetApi(message.api);
-        yield return api.runner(message.parameter);
+        yield return StartCoroutine(api.runner(message.parameter));
         string ret = api.result();
         if (ret != null) {
             ResponseMessage responseMessage = new ResponseMessage();

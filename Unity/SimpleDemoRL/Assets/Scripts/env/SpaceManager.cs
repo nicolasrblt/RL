@@ -126,4 +126,17 @@ public class SpaceManager : MonoBehaviour
         rigidbody.velocity = Vector3.zero;
         rigidbody.angularVelocity = Vector3.zero;
     }
+
+    public float DistToAgent(GameObject obj)
+    {
+        return Dist(agent, obj);
+    }
+    public float AngleToAgent(GameObject obj)
+    {
+        return Vector3.Angle(agent.transform.forward, obj.transform.position - agent.transform.position);
+    }
+    public float Dist(GameObject obj1, GameObject obj2)
+    {
+        return Vector3.Distance(obj1.transform.position, obj2.transform.position);
+    }
 }

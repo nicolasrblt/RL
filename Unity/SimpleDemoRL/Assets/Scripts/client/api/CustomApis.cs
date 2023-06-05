@@ -44,6 +44,10 @@ public class StepAPI: EnvCoroutineAPI<AgentAction, EnvState>
         env.createCurrentState();
         returnValue = env.getCurrentState();
     }
+    public override DispatchMethod DispatchAt()
+    {
+        return DispatchMethod.FixedUpdate;
+    }
 }
 
 public class ResetAPI: EnvCoroutineAPI<string, EnvState>
@@ -56,6 +60,10 @@ public class ResetAPI: EnvCoroutineAPI<string, EnvState>
         yield return new WaitForFixedUpdate();
         env.createCurrentState(true);
         returnValue = env.getCurrentState();
+    }
+    public override DispatchMethod DispatchAt()
+    {
+        return DispatchMethod.FixedUpdate;
     }
 }
 

@@ -14,6 +14,10 @@ public class EnvState
     public Vector3 orangeAreaPosition;
     public Vector3 whiteAreaPosition;
     public float agentRedBallAngle;
+    public float agentGrayAreaAngle;
+    public float agentRedBallDist;
+    public float agentGrayAreaDist;
+    public float RedBallGreyAreaDist;
     public bool agentOutsidePlane;
     public bool redBallOutsidePlane;
     public bool terminate;

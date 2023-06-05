@@ -34,6 +34,7 @@ public class EnvorinmentManager : MonoBehaviour
     {
         controller.moveInput = action.moveInput;
         controller.turnInput = action.turnInput;
+        controller.newInput = true;
         prevAction = action;
         /*recorder.AddStep(controller.moveInput, controller.turnInput,
             spaceManager.agent.transform.position, spaceManager.agent.transform.rotation.eulerAngles,
@@ -81,9 +82,13 @@ public class EnvorinmentManager : MonoBehaviour
 
         state.agentOutsidePlane = spaceManager.OutSidePlane(spaceManager.agent);
         state.redBallOutsidePlane = spaceManager.OutSidePlane(spaceManager.redBall);
-        state.agentRedBallAngle = Vector3.Angle(spaceManager.agent.transform.forward,
-                                                spaceManager.redBall.transform.position-spaceManager.agent.transform.position);
+        state.agentRedBallAngle = spaceManager.AngleToAgent(spaceManager.redBall);
         
+        state.agentGrayAreaAngle = spaceManager.AngleToAgent(spaceManager.grayArea);
+        state.agentRedBallDist = spaceManager.DistToAgent(spaceManager.redBall);
+        state.agentGrayAreaDist = spaceManager.DistToAgent(spaceManager.grayArea);
+        state.RedBallGreyAreaDist = spaceManager.Dist(spaceManager.redBall, spaceManager.grayArea);
+
         if (!reset)
         {
             state.terminate = task.isFail(state) || task.isSuccess(state);
@@ -129,6 +134,9 @@ public class EnvorinmentManager : MonoBehaviour
                 Reset();
             }
         }
+
+        if (!rewardServerEnabled)
+            return;
     
         recordFreq += Time.fixedDeltaTime;
         rewardCalculateFreq += Time.fixedDeltaTime;
@@ -147,7 +155,7 @@ public class EnvorinmentManager : MonoBehaviour
         if (rewardCalculateFreq >= 0.08f) // 1 / 50 = 0.02
         {
             rewardCalculateFreq -= 0.08f;
-            if (recorder.GetReplaySize() > 0 & rewardServerEnabled)
+            if (recorder.GetReplaySize() > 0)
             {
                 var steps = recorder.SampleBuffer();
                 serverAPI.SendRequest(goalManager.instruction, steps);
