@@ -38,8 +38,10 @@ class Server:
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((host, port))
-        self.server_socket.listen(5)  # FIXME : remove arg on listen ?
-        self.clients = []
+        self.server_socket.listen()
+        self.server_socket.settimeout(1)
+
+        self.client = None
         self.process = None
         
     def start_server(self):
@@ -48,28 +50,24 @@ class Server:
 
     def accept_clients(self):
         while not self.stop:
-            client_socket, client_address = self.server_socket.accept()
-            client = Client(client_socket, client_address)
-            self.clients.append(client)
-            print(f"Accepted connection from {client}")
-            
+            try:
+                client_socket, client_address = self.server_socket.accept()
+                client = Client(client_socket, client_address)
+                self.client = client
+                print(f"Accepted connection from {client} ({client_address})")
+            except TimeoutError:
+                pass
+
         self.server_socket.close()
 
-    def send(self, messages):
-        for client, message in zip(self.clients, messages):
-            client.send(message.encode())
+    def send(self, message):
+        self.client.send(message.encode())
             
-    def recive(self):
-        messeges = []
-        for client in self.clients:
-            message = client.receive().decode()
-            messeges.append(message)
-        return messeges
+    def receive(self):
+        return self.client.receive().decode()
 
     def stop_server(self):
         self.stop = True
-        self.server_socket.close()
-        for client in self.clients:
-            client.socket.close()
-        self.clients = []
-        
+        if self.client:
+            self.client.socket.close()
+        self.client = None

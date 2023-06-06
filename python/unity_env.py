@@ -52,15 +52,15 @@ class UnityEnv(SACEnv):
  
     def shutdown(self):
         message = messages.RequestMessage("shutdown", "")
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None,) -> tuple[ObsType, dict[str, Any]]:
         ## FIXME : reset seems to also return a reward and done flag : remove this
         message = messages.RequestMessage("reset", "")
         
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
         
-        response = messages.ResponseMessage.from_json(self.server.recive()[0])
+        response = messages.ResponseMessage.from_json(self.server.receive())
         observation_message = messages.ObservationMessage.from_json(response.value)
         
         return pharse_observations(observation_message)
@@ -69,9 +69,9 @@ class UnityEnv(SACEnv):
         controll_message = messages.ControllMessage(action)
         message = messages.RequestMessage("step", controll_message.to_json())
         
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
         
-        response = messages.ResponseMessage.from_json(self.server.recive()[0])
+        response = messages.ResponseMessage.from_json(self.server.receive())
         observation_message = messages.ObservationMessage.from_json(response.value)
         
         return *pharse_observations(observation_message), False  ## TODO : replace false by truncated actual value
@@ -93,11 +93,11 @@ class UnityEnv(SACEnv):
 
     def pause(self):
         message = messages.RequestMessage("pause", messages.SingleFieldMessage(True).to_json())
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
 
     def resume(self):
         message = messages.RequestMessage("pause", messages.SingleFieldMessage(False).to_json())
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
 
     def get_name(self):
         return self.name
@@ -106,4 +106,4 @@ class UnityEnv(SACEnv):
         self.time_scale = ts
         ts_message = messages.SingleFieldMessage(ts)
         message = messages.RequestMessage("timeScale", ts_message.to_json())
-        self.server.send([message.to_json()])
+        self.server.send(message.to_json())
