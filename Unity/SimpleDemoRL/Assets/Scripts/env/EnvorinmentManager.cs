@@ -133,6 +133,7 @@ public class EnvorinmentManager : MonoBehaviour
             if (currState.terminate) {
                 Reset();
             }
+            textMeshProRew.SetText($"reward*100 :  {100*currState.reward}");
         }
 
         if (!rewardServerEnabled)
@@ -166,7 +167,7 @@ public class EnvorinmentManager : MonoBehaviour
     void Start()
     {
         nextAction = new AgentAction();
-        task = new PushInTask();
+        task = new StopInTask();
         createCurrentState(reset: true);
         Reset();
         

@@ -33,7 +33,7 @@ public class Controller : MonoBehaviour
         //Debug.Log("FFFF ctrlr");
         if (newInput)
         {
-            Debug.Log($"{elapsedFU} FU between nlast 2 steps TS={Time.timeScale}");
+            //Debug.Log($"{elapsedFU} FU between nlast 2 steps TS={Time.timeScale}");
             newInput  = false;
             elapsedFU = 0;
         }

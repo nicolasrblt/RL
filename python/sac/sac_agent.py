@@ -25,7 +25,7 @@ def get_random_act(env):
     return env.action_space.sample()
 
 class SACAgent:
-    def __init__(self, env) -> None:
+    def __init__(self, env, policy_hidden_sizes=(256, 256), qnets_hidden_sizes=(256, 256)) -> None:
         self.env = env
         self.policy = Policy(env.get_obs_dim(), env.get_act_dim(), env.get_act_high())
         self.q1 = QNet(env.get_obs_dim(), env.get_act_dim())
@@ -78,12 +78,12 @@ class SACAgent:
             start_time = time.time()
 
             if (t+1) % self.param.action_every == 0:
-                self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_ep_len)
+                self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_episode_len)
                 obs = obs2
                 cum_rew = 0
 
             # reset environment and ep if episode is finished
-            if done or ep_len >= self.param.max_ep_len:
+            if done or ep_len >= self.param.max_episode_len:
                 obs, *_ = self.env.reset()
                 ep_len = 0
 
@@ -174,7 +174,7 @@ class SACAgent:
             tot_len += 1
             tot_rew += rew
 
-            if done or ep_len >= self.param.max_ep_len:
+            if done or ep_len >= self.param.max_episode_len:
                 obs, *_ = self.env.reset()
                 ep_len = 0
                 ep += 1

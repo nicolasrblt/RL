@@ -18,13 +18,15 @@ def pharse_observations(obs):
     vector += dict_to_vector(obs.agentPostion, ["x", "z"], 10)
     vector += dict_to_vector(obs.agentRotation, ["y"], 360)
     vector += dict_to_vector(obs.velocity, ["x", "z"], 10)
-    vector += dict_to_vector(obs.redBallPosition, ["x", "z"], 10)
-    #vector += dict_to_vector(obs.blueBallPosition, ["x", "z"])
-    #vector += dict_to_vector(obs.greenBallPosition, ["x", "z"])
-    vector += dict_to_vector(obs.grayAreaPosition, ["x", "z"], 10)
-    #vector += dict_to_vector(obs.orangeAreaPosition, ["x", "z"])
-    #vector += dict_to_vector(obs.whiteAreaPosition, ["x", "z"])
+    #vector += dict_to_vector(obs.redBallPosition, ["x", "z"], 10)
+    #vector += dict_to_vector(obs.grayAreaPosition, ["x", "z"], 10)
     
+    #vector += [obs.agentRedBallAngle / 360]
+    vector += [obs.agentGrayAreaAngle / 360]
+    #vector += [obs.agentRedBallDist / 30]
+    vector += [obs.agentGrayAreaDist / 30]
+    #vector += [obs.RedBallGreyAreaDist / 30]
+
     done = obs.terminate
     reward = obs.reward
 

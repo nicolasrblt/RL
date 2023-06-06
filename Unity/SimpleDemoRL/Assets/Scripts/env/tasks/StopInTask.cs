@@ -4,22 +4,21 @@ public class StopInTask: AgentTask
 {    public override float getReward(EnvState prevState, AgentAction action, EnvState currState)
     {
         if (isSuccess(currState)) {
-            return 20;
+            return 100;
         }
         if (isFail(currState)) {
-            return -5;
+            return -0;
         }
-        float currDist = Vector3.Distance(currState.agentPostion, currState.grayAreaPosition);
-        float prevDist = Vector3.Distance(prevState.agentPostion, prevState.grayAreaPosition);
+        //float currDist = Vector3.Distance(currState.agentPostion, currState.grayAreaPosition);
+        //float prevDist = Vector3.Distance(prevState.agentPostion, prevState.grayAreaPosition);
 
-        //return currDist/40-1;
-        return prevDist - currDist;
+        return (-currState.agentGrayAreaDist/30.0f - currState.agentGrayAreaAngle/180.0f)/20.0f;  // [-0.1; 0]
+        //return prevDist - currDist;
     }
 
     public override bool isSuccess(EnvState state)
     {
-        float distance = Vector3.Distance(state.redBallPosition, state.grayAreaPosition);
-        return distance <= 0.5;
+        return state.agentGrayAreaDist <= 0.5;
     }
 
     public override bool isFail(EnvState state)
