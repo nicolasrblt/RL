@@ -14,7 +14,6 @@ class TrainingParameters:
     start_steps: int = 10000
     update_after: int = 1000
     update_every: int = 50
-    action_every: int = 1
     max_episode_len: int = 1000
     replay_size: int = int(1e6)
     batch_size: int = 100

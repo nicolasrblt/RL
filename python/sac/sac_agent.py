@@ -52,35 +52,30 @@ class SACAgent:
             self.replay_buffer = ReplayBuffer(self.env.get_obs_dim(), self.env.get_act_dim(),
                                               self.param.replay_size)
         ep_len = 0
-        cum_rew = 0
         obs, *_ = self.env.reset(seed=seed)
-        act = self.env.get_random_act() # not needed
 
         for t in range(from_epoch*self.param.epoch_len, self.param.steps):
             ep_len += 1
             # choose action at random or from policy
-            if t % self.param.action_every == 0:
-                if t > self.param.start_steps:
-                    act = self.get_action(obs)
-                else:
-                    act = self.env.get_random_act()
+            if t > self.param.start_steps:
+                act = self.get_action(obs)
+            else:
+                act = self.env.get_random_act()
 
             # respect env target framerate
             elapsed_time = time.time() - start_time
             sleep_duration = target_frame_duration - elapsed_time
             if sleep_duration > 0:
                 time.sleep(sleep_duration)
+                
             # act according to choosen action
             obs2, rew, terminated, truncated, *_ = self.env.step(act)
             start_time = time.time()
             done = terminated or truncated
-            cum_rew += rew
             start_time = time.time()
 
-            if (t+1) % self.param.action_every == 0:
-                self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_episode_len)
-                obs = obs2
-                cum_rew = 0
+            self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_episode_len)
+            obs = obs2
 
             # reset environment and ep if episode is finished
             if done or ep_len >= self.param.max_episode_len:
