@@ -1,6 +1,9 @@
 import json
 
-class ControllMessage:
+from .message import Message
+
+
+class ControllMessage(Message):
     def __init__(self, action):
         self.moveInput = float(action[0])  # convert to float to make sure its serializable
         self.turnInput = float(action[1])  # (np.float32 are not)
