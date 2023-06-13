@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class CustomApiManager : APIManager
 {
-    EnvorinmentManager env;
+    SuperManager env;
 
-    public CustomApiManager(EnvorinmentManager env): base()
+    public CustomApiManager(SuperManager env): base()
     {
         this.env = env;
     }
@@ -16,5 +16,8 @@ public class CustomApiManager : APIManager
         (new PauseAPI(env)).Register("pause", this);
         (new StepAPI(env)).Register("step", this);
         (new ResetAPI(env)).Register("reset", this);
+        (new MultiStepAPI(env)).Register("multiStep", this);
+        (new MultiResetAPI(env)).Register("multiReset", this);
+        (new ElapsedFUAPI(env)).Register("elapsedFU", this);
     }
 }

@@ -8,19 +8,15 @@ using UnityEngine.UI;
 
 public class EnvorinmentManager : MonoBehaviour
 {
-    public Client client;
     public Controller controller;
     public SpaceManager spaceManager;
-    public GoalManager goalManager;
-    public DummyAI dummyAI;
     public Recorder recorder;
     public RewardServerAPI serverAPI;
-    public TextMeshProUGUI textMeshPro;
     public TextMeshProUGUI textMeshProRew;
     public bool manualControl = false;
-    public bool rewardServerEnabled = true;
+    public bool rewardServerEnabled = false;
+    public bool displayLock = false;
     /////////////////////////////////////////
-    private float defaultTimeScale = 1f;
     private AgentTask task;
     private EnvState currState;
     private EnvState prevState;
@@ -37,11 +33,11 @@ public class EnvorinmentManager : MonoBehaviour
         controller.newInput = true;
         prevAction = action;
         /*recorder.AddStep(controller.moveInput, controller.turnInput,
-            spaceManager.agent.transform.position, spaceManager.agent.transform.rotation.eulerAngles,
+            spaceManager.agent.transform.localPosition, spaceManager.agent.transform.localRotation.eulerAngles,
             controller.carRigidbody.velocity, controller.carRigidbody.angularVelocity,
-            spaceManager.redBall.transform.position, spaceManager.blueBall.transform.position,
-            spaceManager.greenBall.transform.position, spaceManager.grayArea.transform.position,
-            spaceManager.orangeArea.transform.position, spaceManager.whiteArea.transform.position);
+            spaceManager.redBall.transform.localPosition, spaceManager.blueBall.transform.localPosition,
+            spaceManager.greenBall.transform.localPosition, spaceManager.grayArea.transform.localPosition,
+            spaceManager.orangeArea.transform.localPosition, spaceManager.whiteArea.transform.localPosition);
         */
         //createCurrentState();
         //textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
@@ -50,7 +46,6 @@ public class EnvorinmentManager : MonoBehaviour
     public void Reset()
     {
         spaceManager.Reset();
-        textMeshPro.SetText(task.GetDisplayName());
         recorder.ResetReplay(task.GetDisplayName());
         prevAction = new AgentAction();
         createCurrentState(reset: true);
@@ -66,19 +61,19 @@ public class EnvorinmentManager : MonoBehaviour
         prevState = currState;
         EnvState state = new EnvState();
 
-        state.agentPostion = spaceManager.agent.transform.position;
-        state.agentRotation = spaceManager.agent.transform.rotation.eulerAngles;
+        state.agentPostion = spaceManager.agent.transform.localPosition;
+        state.agentRotation = spaceManager.agent.transform.localRotation.eulerAngles;
 
         state.velocity = controller.carRigidbody.velocity;
         state.angularVelocity = controller.carRigidbody.angularVelocity;
 
-        state.redBallPosition = spaceManager.redBall.transform.position;
-        state.blueBallPosition = spaceManager.blueBall.transform.position;
-        state.greenBallPosition = spaceManager.greenBall.transform.position;
+        state.redBallPosition = spaceManager.redBall.transform.localPosition;
+        state.blueBallPosition = spaceManager.blueBall.transform.localPosition;
+        state.greenBallPosition = spaceManager.greenBall.transform.localPosition;
 
-        state.grayAreaPosition = spaceManager.grayArea.transform.position;
-        state.orangeAreaPosition = spaceManager.orangeArea.transform.position;
-        state.whiteAreaPosition = spaceManager.whiteArea.transform.position;
+        state.grayAreaPosition = spaceManager.grayArea.transform.localPosition;
+        state.orangeAreaPosition = spaceManager.orangeArea.transform.localPosition;
+        state.whiteAreaPosition = spaceManager.whiteArea.transform.localPosition;
 
         state.agentOutsidePlane = spaceManager.OutSidePlane(spaceManager.agent);
         state.redBallOutsidePlane = spaceManager.OutSidePlane(spaceManager.redBall);
@@ -97,24 +92,9 @@ public class EnvorinmentManager : MonoBehaviour
         currState = state;
     }
 
-    public void Pause(bool pause) {
-        Time.timeScale = pause ? 0f : defaultTimeScale;
-    }
-
-    public void SetTimeScale(float ts) {
-        defaultTimeScale = ts;
-        if (Time.timeScale != 0) {
-            Time.timeScale = ts;
-        }
-    }
-
-    public void QuitGame()
+    public void SetTask(AgentTask task)
     {
-        #if UNITY_EDITOR
-            EditorApplication.ExitPlaymode();
-        #else
-            Application.Quit();
-        #endif
+        this.task = task;
     }
 
     void Update()
@@ -133,7 +113,10 @@ public class EnvorinmentManager : MonoBehaviour
             if (currState.terminate) {
                 Reset();
             }
-            textMeshProRew.SetText($"reward*100 :  {100*currState.reward}");
+        }
+        if (displayLock)
+        {
+            textMeshProRew.SetText($"angle :  {spaceManager.agent.transform.localRotation.eulerAngles.y}");
         }
 
         if (!rewardServerEnabled)
@@ -146,11 +129,11 @@ public class EnvorinmentManager : MonoBehaviour
         {
             recordFreq -= 0.02f;
             recorder.AddStep(controller.moveInput, controller.turnInput,
-                spaceManager.agent.transform.position, spaceManager.agent.transform.rotation.eulerAngles,
+                spaceManager.agent.transform.localPosition, spaceManager.agent.transform.localRotation.eulerAngles,
                 controller.carRigidbody.velocity, controller.carRigidbody.angularVelocity,
-                spaceManager.redBall.transform.position, spaceManager.blueBall.transform.position,
-                spaceManager.greenBall.transform.position, spaceManager.grayArea.transform.position,
-                spaceManager.orangeArea.transform.position, spaceManager.whiteArea.transform.position);
+                spaceManager.redBall.transform.localPosition, spaceManager.blueBall.transform.localPosition,
+                spaceManager.greenBall.transform.localPosition, spaceManager.grayArea.transform.localPosition,
+                spaceManager.orangeArea.transform.localPosition, spaceManager.whiteArea.transform.localPosition);
         }
 
         if (rewardCalculateFreq >= 0.08f) // 1 / 50 = 0.02
@@ -159,7 +142,7 @@ public class EnvorinmentManager : MonoBehaviour
             if (recorder.GetReplaySize() > 0)
             {
                 var steps = recorder.SampleBuffer();
-                serverAPI.SendRequest(goalManager.instruction, steps);
+                serverAPI.SendRequest(task.GetDisplayName(), steps);
             }
         }
     }

@@ -12,7 +12,7 @@ public class Client : MonoBehaviour
 {
     public string host;
     public int port;
-    public EnvorinmentManager env;
+    public SuperManager env;
 
     private TcpClient client;
     private NetworkStream stream;
@@ -112,13 +112,8 @@ public class Client : MonoBehaviour
 
     public void ShutdownSocket(string parameter)
     {
+        stop = true;
         client.Close();
-
-        #if UNITY_EDITOR  // FIXME : quitting app shouldn't be client responsability ?
-            EditorApplication.ExitPlaymode();
-        #else
-            Application.Quit();
-        #endif
     }
 
     public void Send(ResponseMessage response)
@@ -143,7 +138,7 @@ public class Client : MonoBehaviour
         apiManager = new CustomApiManager(env);
         apiManager.RegisterAllApis();
         Connect();
-        (new ShutdownAPI(this)).Register("shutdown", apiManager);
+        (new ShutdownAPI(this, env)).Register("shutdown", apiManager);
 
     }
 

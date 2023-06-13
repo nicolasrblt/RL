@@ -79,7 +79,7 @@ public class GoalManager : MonoBehaviour
             default:
                 targetObject = redBall;
                 areaObject = grayArea;
-                targetObject.transform.position = areaObject.transform.position;
+                targetObject.transform.localPosition = areaObject.transform.localPosition;
                 func = PushOutFunction;
                 instruction = "Push the " + "red ball" + " out " + "gray" + " area";
                 task = TaskEnum.PushOut;
@@ -91,7 +91,7 @@ public class GoalManager : MonoBehaviour
     {
         bool terminate = false;
 
-        float distance = Vector3.Distance(gameObject.transform.position, area.transform.position);
+        float distance = Vector3.Distance(gameObject.transform.localPosition, area.transform.localPosition);
         Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
         Vector3 speed = rigidbody.velocity;
 
@@ -107,7 +107,7 @@ public class GoalManager : MonoBehaviour
     {
         bool terminate = false;
 
-        float distance = Vector3.Distance(gameObject.transform.position, area.transform.position);
+        float distance = Vector3.Distance(gameObject.transform.localPosition, area.transform.localPosition);
         Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
         Vector3 speed = rigidbody.velocity;
 
@@ -123,7 +123,7 @@ public class GoalManager : MonoBehaviour
     {
         bool terminate = false;
 
-        float distance = Vector3.Distance(gameObject.transform.position, area.transform.position);
+        float distance = Vector3.Distance(gameObject.transform.localPosition, area.transform.localPosition);
         Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
         Vector3 speed = rigidbody.velocity;
 

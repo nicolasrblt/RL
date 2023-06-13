@@ -9,6 +9,7 @@ public class Controller : MonoBehaviour
     public Rigidbody carRigidbody; // rigidbody of the car
     public float moveInput; // input for forward movement
     public float turnInput; // input for turning
+    public List<int> elapsedList;
     public bool manualControl = false;
     private int elapsedFU = 0;
     public bool newInput = false;
@@ -16,6 +17,11 @@ public class Controller : MonoBehaviour
     void Start()
     {
         carRigidbody = GetComponent<Rigidbody>();
+        elapsedList = new List<int> ();
+        for (int i = 0; i < 10; i++)
+        {
+            elapsedList.Add(0);
+        }
     }
 
     void Update()
@@ -33,8 +39,12 @@ public class Controller : MonoBehaviour
         //Debug.Log("FFFF ctrlr");
         if (newInput)
         {
-            //Debug.Log($"{elapsedFU} FU between nlast 2 steps TS={Time.timeScale}");
+            //Debug.Log($"{elapsedFU} FU elsapsed TS={Time.timeScale}");
             newInput  = false;
+            if (elapsedFU < 10)
+            {
+                elapsedList[elapsedFU]++;
+            }
             elapsedFU = 0;
         }
         elapsedFU++;

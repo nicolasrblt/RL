@@ -49,8 +49,8 @@ public class SpaceManager : MonoBehaviour
 
         Quaternion quaternion = RandomRotation();
 
-        agent.transform.position = position;
-        agent.transform.rotation = quaternion;
+        agent.transform.localPosition = position;
+        agent.transform.localRotation = quaternion;
 
         Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
         rigidbody.velocity = Vector3.zero;
@@ -66,7 +66,7 @@ public class SpaceManager : MonoBehaviour
 
             if (!Physics.CheckSphere(position, 0.25f, layerMask))
             {
-                gameObject.transform.position = position;
+                gameObject.transform.localPosition = position;
                 Rigidbody rigidbody = gameObject.GetComponent<Rigidbody>();
                 rigidbody.velocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
@@ -84,7 +84,7 @@ public class SpaceManager : MonoBehaviour
             
             if (!Physics.CheckBox(position, new Vector3(1f, 0.01f, 1f)/2, Quaternion.identity, layerMask))
             {
-                gameObject.transform.position = position;
+                gameObject.transform.localPosition = position;
                 break;
             }
         }
@@ -92,7 +92,7 @@ public class SpaceManager : MonoBehaviour
 
     public bool OutSidePlane(GameObject gameObject, int offset=0)
     {
-        if (Mathf.Abs(gameObject.transform.position.x) > 10 || Mathf.Abs(gameObject.transform.position.z) > 10)
+        if (Mathf.Abs(gameObject.transform.localPosition.x) > 10 || Mathf.Abs(gameObject.transform.localPosition.z) > 10)
         {
             return true;
         }
@@ -113,14 +113,14 @@ public class SpaceManager : MonoBehaviour
         do {
             PlaceSphereObject(redBall);
 
-            agentPos = redBall.transform.position + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
-            areaPos  = redBall.transform.position + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
+            agentPos = redBall.transform.localPosition + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
+            areaPos  = redBall.transform.localPosition + Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0) * Vector3.forward * dist0;
             agentPos.y = .3f;
             areaPos.y = 0.01f;
         } while (OutSidePlane(agentPos, 2) | OutSidePlane(areaPos, 2) | (agentPos-areaPos).sqrMagnitude < 16);
-        agent.transform.position = agentPos;
-        grayArea.transform.position = areaPos;
-        agent.transform.rotation = RandomRotation();
+        agent.transform.localPosition = agentPos;
+        grayArea.transform.localPosition = areaPos;
+        agent.transform.localRotation = RandomRotation();
 
         Rigidbody rigidbody = agent.GetComponent<Rigidbody>();
         rigidbody.velocity = Vector3.zero;
@@ -133,10 +133,10 @@ public class SpaceManager : MonoBehaviour
     }
     public float AngleToAgent(GameObject obj)
     {
-        return Vector3.Angle(agent.transform.forward, obj.transform.position - agent.transform.position);
+        return Vector3.Angle(agent.transform.forward, obj.transform.localPosition - agent.transform.localPosition);
     }
     public float Dist(GameObject obj1, GameObject obj2)
     {
-        return Vector3.Distance(obj1.transform.position, obj2.transform.position);
+        return Vector3.Distance(obj1.transform.localPosition, obj2.transform.localPosition);
     }
 }

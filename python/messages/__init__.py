@@ -4,3 +4,4 @@ from .response_message import ResponseMessage
 from .controll_message import ControllMessage
 from .observation_message import ObservationMessage
 from .single_field_message import SingleFieldMessage
+from .multi_message import MultiMessage, MultiObservationMessage, MultiControllMessage

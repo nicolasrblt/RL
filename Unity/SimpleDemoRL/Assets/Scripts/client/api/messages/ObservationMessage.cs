@@ -22,6 +22,7 @@ public class EnvState
     public bool redBallOutsidePlane;
     public bool terminate;
     public float reward;
+    public int envNum;
 
 
     public static EnvState FromJson(string json)

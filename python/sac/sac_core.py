@@ -55,14 +55,17 @@ class ReplayBuffer:
         self.done = np.zeros((size,), dtype=np.bool8)
 
     def record(self, obs, act, obs2, rew, done) -> None:
-        self.obs[self.index] = obs
-        self.act[self.index] = act
-        self.obs2[self.index] = obs2
-        self.rew[self.index] = rew
-        self.done[self.index] = done
-        self.index = (self.index+1)%self.max_size
+        s = 1 if len(obs.shape) == 1 else obs.shape[0]
+        ## TODO!! handle case where buffer needs to be written at its end *and* start
+        self.obs[self.index:self.index+s] = obs
+        self.act[self.index:self.index+s] = act
+        self.obs2[self.index:self.index+s] = obs2
+        self.rew[self.index:self.index+s] = rew
+        self.done[self.index:self.index+s] = done
+
+        self.index = (self.index+s)%self.max_size
         if self.size < self.max_size:
-            self.size += 1
+            self.size = min(self.max_size, self.size+s)
 
     def sample(self, size: int) -> np.ndarray:
         assert self.size > size

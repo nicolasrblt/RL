@@ -4,29 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public abstract class EnvAPI<ArgType, RetType>: Api<ArgType, RetType>
+public class TimeScaleAPI: Api<SingleFieldMessage<float>, string>
 {
-    protected EnvorinmentManager env;
-
-    public EnvAPI(EnvorinmentManager target): base()
+    private SuperManager env;
+    public TimeScaleAPI(SuperManager env)
     {
-        env = target;
+        this.env = env;
     }
-}
-
-public abstract class EnvCoroutineAPI<ArgType, RetType>: CoroutineApi<ArgType, RetType>
-{
-    protected EnvorinmentManager env;
-
-    public EnvCoroutineAPI(EnvorinmentManager target): base()
-    {
-        env = target;
-    }
-}
-
-public class TimeScaleAPI: EnvAPI<SingleFieldMessage<float>, string>
-{
-    public TimeScaleAPI(EnvorinmentManager env): base(env) {}
     public override string Handle(SingleFieldMessage<float> msg) {
         Debug.Log($"time scale : {(float)msg}");
         env.SetTimeScale(msg);
@@ -34,15 +18,19 @@ public class TimeScaleAPI: EnvAPI<SingleFieldMessage<float>, string>
     }
 }
 
-public class StepAPI: EnvCoroutineAPI<AgentAction, EnvState>
+public class StepAPI: CoroutineApi<AgentAction, EnvState>
 {
-    public StepAPI(EnvorinmentManager env): base(env) {}
+    private SuperManager env;
+    public StepAPI(SuperManager env)
+    {
+        this.env = env;
+    }
     public override IEnumerator Handle(AgentAction msg) {
         //Debug.Log($"control : {msg.moveInput}, {msg.turnInput}");
-        env.Step(msg);
+        env.GetEnv(0).Step(msg);
         yield return new WaitForFixedUpdate();
-        env.createCurrentState();
-        returnValue = env.getCurrentState();
+        env.GetEnv(0).createCurrentState();
+        returnValue = env.GetEnv(0).getCurrentState();
     }
     public override DispatchMethod DispatchAt()
     {
@@ -50,16 +38,71 @@ public class StepAPI: EnvCoroutineAPI<AgentAction, EnvState>
     }
 }
 
-public class ResetAPI: EnvCoroutineAPI<string, EnvState>
+public class ResetAPI: Api<SingleFieldMessage<int>, EnvState>
 {
-
-    public ResetAPI(EnvorinmentManager env): base(env) {}
-    public override IEnumerator Handle(string msg) {
+    private SuperManager env;
+    public ResetAPI(SuperManager env)
+    {
+        this.env = env;
+    }
+    public override EnvState Handle(SingleFieldMessage<int> msg) {
         //Debug.Log($"reset");
-        env.Reset();
+        env.GetEnv((int)msg).Reset();
+        env.GetEnv((int)msg).createCurrentState(true);
+        return env.GetEnv((int)msg).getCurrentState();
+    }
+
+    public override DispatchMethod DispatchAt()
+    {
+        return DispatchMethod.FixedUpdate;
+    }
+}
+
+public class MultiStepAPI: CoroutineApi<MultiMessage<AgentAction>, MultiMessage<EnvState>>
+{
+    private SuperManager env;
+    public MultiStepAPI(SuperManager env)
+    {
+        this.env = env;
+    }
+    public override IEnumerator Handle(MultiMessage<AgentAction> msg) {
+        returnValue = new MultiMessage<EnvState>();
+        foreach (AgentAction action in msg.messages)
+        {
+            env.GetEnv(action.envNum).Step(action);
+        }
+
         yield return new WaitForFixedUpdate();
-        env.createCurrentState(true);
-        returnValue = env.getCurrentState();
+
+        foreach (AgentAction action in msg.messages)
+        {
+            env.GetEnv(action.envNum).createCurrentState(true);
+            returnValue.messages.Add(env.GetEnv(action.envNum).getCurrentState());
+        }  
+    }
+        public override DispatchMethod DispatchAt()
+    {
+        return DispatchMethod.FixedUpdate;
+    }
+}
+
+public class MultiResetAPI: Api<MultiMessage<int>, MultiMessage<EnvState>>
+{
+    private SuperManager env;
+    public MultiResetAPI(SuperManager env)
+    {
+        this.env = env;
+    }
+    public override MultiMessage<EnvState> Handle(MultiMessage<int> msg) {
+        MultiMessage<EnvState> ret = new MultiMessage<EnvState>();
+        Debug.Log(msg.messages.Count);
+        foreach (int envNum in msg.messages)
+        {
+            env.GetEnv(envNum).Reset();
+            env.GetEnv(envNum).createCurrentState(true);
+            ret.messages.Add(env.GetEnv(envNum).getCurrentState());
+        }        
+        return ret;
     }
     public override DispatchMethod DispatchAt()
     {
@@ -67,9 +110,14 @@ public class ResetAPI: EnvCoroutineAPI<string, EnvState>
     }
 }
 
-public class PauseAPI: EnvAPI<SingleFieldMessage<bool>, string>
+
+public class PauseAPI: Api<SingleFieldMessage<bool>, string>
 {
-    public PauseAPI(EnvorinmentManager env): base(env) {}
+    private SuperManager env;
+    public PauseAPI(SuperManager env)
+    {
+        this.env = env;
+    }
     public override string Handle(SingleFieldMessage<bool> msg) {
         //Debug.Log($"pause : {(bool)msg}");
         env.Pause(msg);
@@ -80,15 +128,36 @@ public class PauseAPI: EnvAPI<SingleFieldMessage<bool>, string>
 
 public class ShutdownAPI: Api<string, string>
 {
+    private SuperManager env;
     Client client;
-    public ShutdownAPI(Client c): base()
+    public ShutdownAPI(Client c, SuperManager e): base()
     {
         client = c;
+        env = e;
     }
     public override string Handle(string msg) {
         Debug.Log("shutdown");
         client.ShutdownSocket("");
+        env.QuitGame();
         return null;
+    }
+}
+
+public class ElapsedFUAPI: Api<string, MultiMessage<int>>
+{
+    private SuperManager env;
+    public ElapsedFUAPI(SuperManager env)
+    {
+        this.env = env;
+    }
+    public override MultiMessage<int> Handle(string msg) {
+        MultiMessage<int> returnValue = new MultiMessage<int>();
+        for (int i = 0; i < 10; i++)
+        {
+            returnValue.messages.Add(env.GetEnv(0).controller.elapsedList[i]);
+            env.GetEnv(0).controller.elapsedList[i] = 0;            
+        }
+        return returnValue;
     }
 }
 // Check

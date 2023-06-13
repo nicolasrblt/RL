@@ -5,7 +5,7 @@ class SACEnv:
     def step(self, action):
         raise NotImplemented
 
-    def reset(self, seed=None):
+    def reset(self, done=True):
         raise NotImplemented
 
     def pause(self):  # optional
@@ -31,9 +31,16 @@ class SACEnv:
     
     def get_name(self):
         raise NotImplemented
+    
+    def get_agent_number(self):
+        return 1
 
 
 class GymEnv(Wrapper, SACEnv):  # mro -> search first in gym wrapper then in SACEnv
+    def reset(self, done=True, **kwargs):
+        if done:
+            super().reset(**kwargs)
+            
     def get_obs_dim(self):
         return self.observation_space.shape[0]
 

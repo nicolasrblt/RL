@@ -6,6 +6,7 @@ public class AgentAction
 {
     public float moveInput;
     public float turnInput;
+    public int envNum;
 
 
     public static AgentAction FromJson(string json)

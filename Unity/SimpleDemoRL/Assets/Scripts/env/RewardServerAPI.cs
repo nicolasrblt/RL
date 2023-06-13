@@ -16,7 +16,7 @@ class PredictResponse
     public float predictions;
 }
 
-public class RewardServerAPI : MonoBehaviour
+public class RewardServerAPI : MonoBehaviour  // TODO : doesn't need to be a monobehaviour, instance should be shared by all training areas
 {
     public string apiUrl = "http://localhost:8000/predict";
     public TextMeshProUGUI textMeshPro;

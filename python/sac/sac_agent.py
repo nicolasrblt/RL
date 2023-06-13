@@ -49,12 +49,13 @@ class SACAgent:
         start_time = 0  # initial value doesn't matter as long as it's < time()
 
         if self.replay_buffer is None:
+            # make sure here replay buffer size is multiple of agent size to simplify datastoring
             self.replay_buffer = ReplayBuffer(self.env.get_obs_dim(), self.env.get_act_dim(),
-                                              self.param.replay_size)
-        ep_len = 0
-        obs, *_ = self.env.reset(seed=seed)
+                                              self.param.replay_size - self.param.replay_size%self.env.get_agent_number())
+        ep_len = np.zeros((self.env.get_agent_number(),))
+        obs, *_ = self.env.reset()
 
-        for t in range(from_epoch*self.param.epoch_len, self.param.steps):
+        for t in range(from_epoch*self.param.epoch_len, self.param.steps, self.env.get_agent_number()):
             ep_len += 1
             # choose action at random or from policy
             if t > self.param.start_steps:
@@ -67,29 +68,29 @@ class SACAgent:
             sleep_duration = target_frame_duration - elapsed_time
             if sleep_duration > 0:
                 time.sleep(sleep_duration)
-                
+
             # act according to choosen action
             obs2, rew, terminated, truncated, *_ = self.env.step(act)
             start_time = time.time()
-            done = terminated or truncated
+            done = terminated | truncated | (ep_len > self.param.max_episode_len)
             start_time = time.time()
 
-            self.replay_buffer.record(obs, act, obs2, rew, done or ep_len >= self.param.max_episode_len)
+            self.replay_buffer.record(obs, act, obs2, rew, done)
             obs = obs2
 
             # reset environment and ep if episode is finished
-            if done or ep_len >= self.param.max_episode_len:
-                obs, *_ = self.env.reset()
-                ep_len = 0
+            if np.any(done):
+                obs, *_ = self.env.reset(done)
+                ep_len[done] = 0
 
             # show epoch stats and save checkpoint on epoch end
-            if t % self.param.epoch_len == 0 and t >= 0:
+            if t>0 and t%self.param.epoch_len < self.env.get_agent_number():
                 avg_rew, avg_len = self.test()
                 print(f"=== epoch {t//self.param.epoch_len} || avg rew : {avg_rew} || avg len : {avg_len}")
                 self.checkpoint(t)
 
             # update policy and qnet when needed
-            if t % self.param.update_every == 0 and t >= self.param.update_after:
+            if t % self.param.update_every < self.env.get_agent_number() and t >= self.param.update_after:
                 self.env.pause()
                 for _ in range(self.param.update_every):
                     batch = self.replay_buffer.sample(self.param.batch_size)

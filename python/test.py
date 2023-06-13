@@ -3,21 +3,20 @@ import random
 import numpy as np
 
 import messages
-from simulator import Simulator
+from server import Server
 from agent import Agent
 from unity_env import UnityEnv
 
 try:
-    simulator = Simulator(port=5004)
-    env = UnityEnv(simulator, 9, 2, 1, lambda: 2*np.random.random((2,))-1, "SimpleDemoEnv")
-    agent = Agent(env)
+    server = Server('127.0.0.1', 5006)
+    env = UnityEnv(server, 7, 2, 1, lambda n: 2*np.random.random((n, 2))-1, "SimpleUnityEnv", 2)
+    agent = Agent(env, (256,)*6, (256)*6)
 
-    simulator.start_server()
+    env.start_server()
 
-    #input("start unity env, then press enter")
     env.set_time_scale(20)
-    agent.train(epoch_len=2000, start_steps=4000)
+    agent.train(from_epoch=0, epoch_len=10_000, start_steps=10_000, max_episode_len=4_000)
 finally:
     print("shutdown...")
-    simulator.shutdown()
-    simulator.server.stop_server()
+    env.shutdown()
+    server.stop_server()

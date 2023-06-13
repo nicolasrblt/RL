@@ -9,7 +9,7 @@ class ObservationMessage(Message):
                  grayAreaPosition, orangeAreaPosition, whiteAreaPosition,
                  agentRedBallAngle, agentGrayAreaAngle, agentRedBallDist,
                  agentGrayAreaDist, RedBallGreyAreaDist, agentOutsidePlane,
-                 redBallOutsidePlane,terminate, reward):
+                 redBallOutsidePlane,terminate, reward, envNum):
         
         self.agentPostion = agentPostion
         self.agentRotation = agentRotation
@@ -35,3 +35,5 @@ class ObservationMessage(Message):
         
         self.terminate = terminate
         self.reward = reward
+
+        self.envNum = envNum
