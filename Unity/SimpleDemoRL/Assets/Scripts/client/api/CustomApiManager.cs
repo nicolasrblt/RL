@@ -19,5 +19,6 @@ public class CustomApiManager : APIManager
         (new MultiStepAPI(env)).Register("multiStep", this);
         (new MultiResetAPI(env)).Register("multiReset", this);
         (new ElapsedFUAPI(env)).Register("elapsedFU", this);
+        (new SpawnEnvsAPI(env)).Register("spawnEnvs", this);
     }
 }

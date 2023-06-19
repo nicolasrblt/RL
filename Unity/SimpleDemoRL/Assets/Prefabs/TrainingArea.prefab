@@ -146,10 +146,8 @@ GameObject:
   - component: {fileID: 5415244493117285674}
   - component: {fileID: 5415244493117285673}
   - component: {fileID: 5415244493117285676}
-  - component: {fileID: 5415244493117285675}
   - component: {fileID: 5415244493117285677}
   - component: {fileID: 5415244493117285678}
-  - component: {fileID: 5415244493117285679}
   m_Layer: 0
   m_Name: TrainingAreaManager
   m_TagString: Untagged
@@ -204,36 +202,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc1fce8bc30d2431aab6b92d3b2814db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  client: {fileID: 0}
   controller: {fileID: 5415244492336062696}
   spaceManager: {fileID: 5415244493117285673}
-  goalManager: {fileID: 5415244493117285675}
-  dummyAI: {fileID: 0}
   recorder: {fileID: 5415244493117285677}
   serverAPI: {fileID: 5415244493117285678}
-  textMeshPro: {fileID: 0}
   textMeshProRew: {fileID: 0}
   manualControl: 0
   rewardServerEnabled: 0
---- !u!114 &5415244493117285675
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5415244493117285672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcfbbf440b942470b9d7b7742ea2c158, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  agent: {fileID: 5181314393672090845}
-  redBall: {fileID: 8021236023155147418}
-  grayArea: {fileID: 5415244493552115664}
-  targetObject: {fileID: 0}
-  areaObject: {fileID: 0}
-  instruction: 
-  task: 0
+  displayLock: 0
 --- !u!114 &5415244493117285677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -260,18 +236,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   apiUrl: http://localhost:8000/predict
   textMeshPro: {fileID: 0}
---- !u!114 &5415244493117285679
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5415244493117285672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 37624bd61709091069397052bf2493e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &2899255497347180234
 PrefabInstance:
   m_ObjectHideFlags: 0

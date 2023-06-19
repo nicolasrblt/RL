@@ -39,7 +39,7 @@ public class Controller : MonoBehaviour
         //Debug.Log("FFFF ctrlr");
         if (newInput)
         {
-            //Debug.Log($"{elapsedFU} FU elsapsed TS={Time.timeScale}");
+            Debug.Log($"{elapsedFU} FU elsapsed TS={Time.timeScale}");
             newInput  = false;
             if (elapsedFU < 10)
             {

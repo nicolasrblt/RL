@@ -67,6 +67,7 @@ public class MultiStepAPI: CoroutineApi<MultiMessage<AgentAction>, MultiMessage<
     }
     public override IEnumerator Handle(MultiMessage<AgentAction> msg) {
         returnValue = new MultiMessage<EnvState>();
+        env.nStep += msg.messages.Count;
         foreach (AgentAction action in msg.messages)
         {
             env.GetEnv(action.envNum).Step(action);
@@ -76,7 +77,7 @@ public class MultiStepAPI: CoroutineApi<MultiMessage<AgentAction>, MultiMessage<
 
         foreach (AgentAction action in msg.messages)
         {
-            env.GetEnv(action.envNum).createCurrentState(true);
+            env.GetEnv(action.envNum).createCurrentState();
             returnValue.messages.Add(env.GetEnv(action.envNum).getCurrentState());
         }  
     }
@@ -95,7 +96,6 @@ public class MultiResetAPI: Api<MultiMessage<int>, MultiMessage<EnvState>>
     }
     public override MultiMessage<EnvState> Handle(MultiMessage<int> msg) {
         MultiMessage<EnvState> ret = new MultiMessage<EnvState>();
-        Debug.Log(msg.messages.Count);
         foreach (int envNum in msg.messages)
         {
             env.GetEnv(envNum).Reset();
@@ -160,4 +160,16 @@ public class ElapsedFUAPI: Api<string, MultiMessage<int>>
         return returnValue;
     }
 }
-// Check
+
+public class SpawnEnvsAPI: Api<SingleFieldMessage<int>, string>
+{
+    private SuperManager env;
+    public SpawnEnvsAPI(SuperManager env)
+    {
+        this.env = env;
+    }
+    public override string Handle(SingleFieldMessage<int> msg) {
+        env.SpawnEnvs((int)msg);
+        return null;
+    }
+}

@@ -10,6 +10,7 @@ from torch.optim import Adam
 from torch import nn
 
 from .sac_core import TrainingParameters, create_mlp, QNet, Policy, ReplayBuffer
+from .sac_env import SACEnv
 
 
 def get_obs_dim(env):
@@ -25,7 +26,7 @@ def get_random_act(env):
     return env.action_space.sample()
 
 class SACAgent:
-    def __init__(self, env, policy_hidden_sizes=(256, 256), qnets_hidden_sizes=(256, 256)) -> None:
+    def __init__(self, env: SACEnv, policy_hidden_sizes=(256, 256), qnets_hidden_sizes=(256, 256)) -> None:
         self.env = env
         self.policy = Policy(env.get_obs_dim(), env.get_act_dim(), env.get_act_high())
         self.q1 = QNet(env.get_obs_dim(), env.get_act_dim())
@@ -80,7 +81,7 @@ class SACAgent:
 
             # reset environment and ep if episode is finished
             if np.any(done):
-                obs, *_ = self.env.reset(done)
+                obs[done], *_ = self.env.reset(done)
                 ep_len[done] = 0
 
             # show epoch stats and save checkpoint on epoch end
@@ -155,26 +156,25 @@ class SACAgent:
 
         return ((self.q1(obs, act) - target)**2).mean(), ((self.q2(obs, act) - target)**2).mean()
     
-    def test(self, max_ep=10):
+    def test(self, n_episodes=10):
         obs, *_ = self.env.reset()
         ep = 0
-        ep_len = 0
+        ep_len = np.zeros((self.env.get_agent_number(),))
         tot_rew = 0
         tot_len = 0
-        
-        while ep < max_ep:
-            act = self.get_action(obs)
+        while ep < n_episodes:
+            act = self.get_action(obs, probabilistic=False)
             obs, rew, terminated, truncated, *_ = self.env.step(act)
-            done = terminated or truncated
+            done = terminated | truncated | (ep_len >= self.param.max_episode_len)
             ep_len += 1
-            tot_len += 1
-            tot_rew += rew
+            tot_len += self.env.get_agent_number()
+            tot_rew += np.sum(rew)
 
-            if done or ep_len >= self.param.max_episode_len:
-                obs, *_ = self.env.reset()
-                ep_len = 0
-                ep += 1
-        return tot_rew / max_ep, tot_len / max_ep
+            if np.any(done):
+                obs[done], *_ = self.env.reset(done)
+                ep_len[done] = 0
+                ep += np.count_nonzero(done)
+        return tot_rew / ep, tot_len / ep
 
 
     def checkpoint(self, t):

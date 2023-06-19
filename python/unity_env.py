@@ -56,7 +56,7 @@ class UnityEnv(SACEnv):
         message = messages.RequestMessage("shutdown", "")
         self.server.send(message.to_json())
 
-    def reset(self, *, envDone=None) -> list[ObsType] | ObsType:
+    def reset(self, envDone=None) -> list[ObsType] | ObsType:
         if isinstance(envDone, int):
             req_json = get_json_request("reset", messages.SingleFieldMessage(envDone))
             self.server.send(req_json)
@@ -64,7 +64,7 @@ class UnityEnv(SACEnv):
             resp_json = self.server.receive()
             observation_message = get_response_msg(resp_json, messages.ObservationMessage)
 
-            return (np.array(obs_to_vect(observation_message)),)
+            return (np.array(obs_to_vect(observation_message), dtype=np.float32),)
         
         else:
             if envDone is None:
@@ -77,7 +77,7 @@ class UnityEnv(SACEnv):
             resp_json = self.server.receive()
             multi_obs_msg = get_response_msg(resp_json, messages.MultiObservationMessage)
 
-            return (np.array([obs_to_vect(obs) for obs in multi_obs_msg.messages]),)
+            return (np.array([obs_to_vect(obs) for obs in multi_obs_msg.messages], dtype=np.float32),)
     
     def step(self, action: list[ActType] | ActType, envNum: int | list[int]=0) -> tuple[list[ObsType] | ObsType, float, bool, bool]:
         if len(np.shape(action)) == 2:
@@ -89,8 +89,8 @@ class UnityEnv(SACEnv):
             multi_obs_msg = get_response_msg(resp_json, messages.MultiObservationMessage)
             
             return (
-                np.array([obs_to_vect(obs) for obs in multi_obs_msg.messages]),
-                np.array([obs.reward for obs in multi_obs_msg.messages]),
+                np.array([obs_to_vect(obs) for obs in multi_obs_msg.messages], dtype=np.float32),
+                np.array([obs.reward for obs in multi_obs_msg.messages], dtype=np.float32),
                 np.array([obs.terminate for obs in multi_obs_msg.messages]),
                 np.array([False for obs in multi_obs_msg.messages])  ## TODO : replace false by truncated actual value
             )
@@ -104,7 +104,7 @@ class UnityEnv(SACEnv):
             response = messages.ResponseMessage.from_json(self.server.receive())
             observation_message = messages.ObservationMessage.from_json(response.value)
             
-            return np.array(obs_to_vect(observation_message)), observation_message.reward, observation_message.done, False  ## TODO : replace false by truncated actual value
+            return np.array(obs_to_vect(observation_message), dtype=np.float32), observation_message.reward, observation_message.done, False  ## TODO : replace false by truncated actual value
 
     def get_target_frame_duration(self):
         return 0
@@ -137,9 +137,12 @@ class UnityEnv(SACEnv):
     
     def set_time_scale(self, ts: int):
         self.time_scale = ts
-        ts_message = messages.SingleFieldMessage(ts)
-        message = messages.RequestMessage("timeScale", ts_message.to_json())
-        self.server.send(message.to_json())
+        req_json = get_json_request("timeScale", messages.SingleFieldMessage(ts))
+        self.server.send(req_json)
+
+    def spawn_envs(self, n):
+        req_json = get_json_request("spawnEnvs", messages.SingleFieldMessage(n))
+        self.server.send(req_json)
 
 def get_json_request(api, message):
     return messages.RequestMessage(api, message.to_json()).to_json()
