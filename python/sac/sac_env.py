@@ -2,6 +2,9 @@ from gymnasium import Wrapper
 
 
 class SACEnv:
+    """
+    An abstract class specifying the environment API. compliant with OpenAI gym API's core features
+    """
     def step(self, action):
         raise NotImplemented
 
@@ -37,6 +40,9 @@ class SACEnv:
 
 
 class GymEnv(Wrapper, SACEnv):  # mro -> search first in gym wrapper then in SACEnv
+    """
+    A wrapper around a Gym environment to make it compliant with `SACEnv` interface
+    """
     def reset(self, done=True, **kwargs):
         if done:
             super().reset(**kwargs)

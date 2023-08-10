@@ -6,6 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+/*
+An object that macro-manages multiple environments and the simulation itself
+*/
 public class SuperManager : MonoBehaviour
 {
     public TextMeshProUGUI textMeshPro;

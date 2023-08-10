@@ -7,6 +7,10 @@ public abstract class APIMessage{}  // TODO remove this, unnecessary
 
 public enum DispatchMethod {Update, FixedUpdate, DoNotDispatch}
 
+/*
+A facade for api allowing to call them.
+Used to unify all API types
+*/
 public struct ApiFacade {
     public Func<string> result;
     public Func<string, IEnumerator> runner;
@@ -18,6 +22,9 @@ public struct ApiFacade {
     }
 }
 
+/*
+An Abstract class for all API to implement
+*/
 public abstract class BaseApi<ArgType, RetType>
 {
     protected RetType returnValue;
@@ -47,6 +54,9 @@ public abstract class BaseApi<ArgType, RetType>
 }
 
 
+/*
+Specialisation of BaseAPI abstract class for non coroutine APIs
+*/
 public abstract class Api<ArgType, RetType>: BaseApi<ArgType, RetType>
 {
     public abstract RetType Handle(ArgType arg);
@@ -59,6 +69,9 @@ public abstract class Api<ArgType, RetType>: BaseApi<ArgType, RetType>
 }
 
 
+/*
+Specialisation of BaseAPI abstract class for coroutine APIs
+*/
 public abstract class CoroutineApi<ArgType, RetType>: BaseApi<ArgType, RetType>
 {
     public abstract IEnumerator Handle(ArgType arg);

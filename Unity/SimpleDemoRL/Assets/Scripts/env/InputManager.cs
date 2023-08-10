@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+An input manager allowing the agent to be controlled by the user
+*/
 public class InputManager : MonoBehaviour
 {
     public Controller controller;

@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-
+/*
+A manager to register and call APIs
+Extend this class and override RegisterAllApis to register user APIs
+*/
 public abstract class APIManager
 {
     protected Dictionary<string, ApiFacade> apiDictionary;

@@ -26,6 +26,10 @@ def get_random_act(env):
     return env.action_space.sample()
 
 class SACAgent:
+    """
+    Agent holding trainable by SAC algotithm
+    This class contains the SAC algorithm itself divided in several functions
+    """
     def __init__(self, env: SACEnv, policy_hidden_sizes=(256, 256), qnets_hidden_sizes=(256, 256)) -> None:
         self.env = env
         self.policy = Policy(env.get_obs_dim(), env.get_act_dim(), env.get_act_high())
@@ -45,6 +49,27 @@ class SACAgent:
 
     ## TODO re-add agent testing, logging, start_step, update_after
     def train(self, seed=None, from_epoch=0, **training_params):
+        """
+        Soft Actor-Critic Algorithm
+        trains the agent in the environment provided at initialisation
+
+        from_epoch (optional) -- starting epoch, specify to resume a previous training session.
+        training_params** -- hyperparameters for training :
+            epoch -- number of epoch to train for
+            epoch_len -- number of step per epoch
+            start_steps -- number of step to perform randomly before using policy, helps exploration
+            update_after -- number of step to perform before optimising, to prefill replay buffer
+            update_every -- number of step to perform in between two optimisation steps
+            max_episode_len -- maximum number of step for one episode. Environment is automatically reset if this step number is reached
+            replay_size -- maximum number of entry in the replay buffer
+            batch_size -- size of batchs sampled from replay_buffer for optimisation
+
+            gamma -- discount factor
+            polyak -- polyak averaging coefficient
+            lr -- learning rate
+            alpha -- trade-off entropy coefficient
+
+        """
         self.param.update(training_params)
         target_frame_duration = self.env.get_target_frame_duration()
         start_time = 0  # initial value doesn't matter as long as it's < time()
@@ -103,6 +128,9 @@ class SACAgent:
 
 
     def update(self, batch):
+        """
+        Perform one optimisation step on both Q nets and the policy according to the sampled steps in batch
+        """
         self.q1_optimizer.zero_grad()
         self.q2_optimizer.zero_grad()
         q1_loss, q2_loss = self.compute_loss_q(batch)
@@ -134,6 +162,9 @@ class SACAgent:
             return a.numpy()
         
     def compute_loss_pi(self, batch):
+        """ 
+        Returns policy loss
+        """
         obs = batch["obs"]
         act, logp = self.policy(obs)
         q_pi = torch.min(
@@ -144,6 +175,9 @@ class SACAgent:
         # minus denotes the fact that we perform a gradient *ascent*
 
     def compute_loss_q(self, batch):
+        """
+        Returns both Q functions losses
+        """
         obs, act, obs2, rew, done = batch["obs"], batch["act"], batch["obs2"], batch["rew"], batch["done"]
         
         with torch.no_grad():  # no grad while computing target
@@ -157,6 +191,9 @@ class SACAgent:
         return ((self.q1(obs, act) - target)**2).mean(), ((self.q2(obs, act) - target)**2).mean()
     
     def test(self, n_episodes=10):
+        """
+        Evaluate the agent for `n_episodes` episodes and return its average return and average episode lenght
+        """
         obs, *_ = self.env.reset()
         ep = 0
         ep_len = np.zeros((self.env.get_agent_number(),))
@@ -178,6 +215,9 @@ class SACAgent:
 
 
     def checkpoint(self, t):
+        """
+        saves training progress to allow pausing the training and resuming later
+        """
         if not os.path.exists(f"save/{self.env.get_name()}/"):
             os.makedirs(f"save/{self.env.get_name()}/")
         torch.save({

@@ -3,6 +3,10 @@ using UnityEngine;
 [System.Serializable]
 public class EnvState
 {
+    /*
+    Message specifying an environment state
+    */
+    
     public Vector3 agentPostion;
     public Vector3 agentRotation;
     public Vector3 velocity;

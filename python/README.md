@@ -1,1 +1,1 @@
-python side for reinforcement learning
+This repository holds a project conducted during a 4-month internship at CTU. It consists of a lightweight framework allowing to use Unity as a reinforcement learning environment.

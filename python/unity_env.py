@@ -9,34 +9,36 @@ from server import Server
 
 
 def dict_to_vector(x, dims, norm=1):
+    """
+    Turn a dict to a list selecting certain items
+
+    dims -- items to select
+    """
     vector = []
     for dim in dims:
         vector.append(x[dim]/norm)
         
     return vector
 
-def obs_to_vect(obs):  ## TODO : rename 'obs_to_vect' and change return accordingly
+def obs_to_vect(obs):
+    """
+    Turn an observation object into a vector selecting only desired features
+
+    return --> a vector containing selected features
+    """
     vector = []
     vector += dict_to_vector(obs.agentPostion, ["x", "z"], 10)
     vector += dict_to_vector(obs.agentRotation, ["y"], 360)
     vector += dict_to_vector(obs.velocity, ["x", "z"], 10)
-    #vector += dict_to_vector(obs.redBallPosition, ["x", "z"], 10)
-    #vector += dict_to_vector(obs.grayAreaPosition, ["x", "z"], 10)
     
-    #vector += [obs.agentRedBallAngle / 360]
     vector += [obs.agentGrayAreaAngle / 360]
-    #vector += [obs.agentRedBallDist / 30]
     vector += [obs.agentGrayAreaDist / 30]
-    #vector += [obs.RedBallGreyAreaDist / 30]
-    
-    done = obs.terminate
-    reward = obs.reward
 
     return vector  #torch.Tensor(vector), reward, done
 
 
 class UnityEnv(SACEnv):
-    """A gym compliant environment model representing unity env and communicating w/ it through a socket"""
+    """An Unity Environment model compliant with OpenAI gym API"""
 
     def __init__(self, server: Server, obs_dim, act_dim, act_high, sample_act_func, name, agent_number=1) -> None:
         super().__init__()
@@ -53,10 +55,17 @@ class UnityEnv(SACEnv):
         self.server.start_server()
  
     def shutdown(self):
+        """Shutdown the foreign Unity environment"""
         message = messages.RequestMessage("shutdown", "")
         self.server.send(message.to_json())
 
     def reset(self, envDone=None) -> list[ObsType] | ObsType:
+        """
+        Reset the environment
+
+        envDone (optional) -- list of id of ennvironments to reset if working with multiple agents
+        return -> observation for environment or list of observation for multiple agent after reset
+        """
         if isinstance(envDone, int):
             req_json = get_json_request("reset", messages.SingleFieldMessage(envDone))
             self.server.send(req_json)
@@ -80,6 +89,14 @@ class UnityEnv(SACEnv):
             return (np.array([obs_to_vect(obs) for obs in multi_obs_msg.messages], dtype=np.float32),)
     
     def step(self, action: list[ActType] | ActType, envNum: int | list[int]=0) -> tuple[list[ObsType] | ObsType, float, bool, bool]:
+        """
+        Perform one step in the environment
+
+        action -- action or list of action to perform
+        envNums (optional) -- id of agent to step if stepping a single one, by default 0.
+
+        return -> observation for environment or list of observation for multiple agent after step
+        """
         if len(np.shape(action)) == 2:
             actions = [messages.ControllMessage(*a, i) for (i, a) in enumerate(action)]
             req_json = get_json_request("multiStep", messages.MultiMessage(actions))
@@ -104,9 +121,12 @@ class UnityEnv(SACEnv):
             response = messages.ResponseMessage.from_json(self.server.receive())
             observation_message = messages.ObservationMessage.from_json(response.value)
             
-            return np.array(obs_to_vect(observation_message), dtype=np.float32), observation_message.reward, observation_message.done, False  ## TODO : replace false by truncated actual value
+            return np.array(obs_to_vect(observation_message), dtype=np.float32), observation_message.reward, observation_message.terminate, False  ## TODO : replace false by truncated actual value
 
     def get_target_frame_duration(self):
+        """
+        Return nominal frame duration of the environment
+        """
         return 0
     
     def get_obs_dim(self):
@@ -116,33 +136,55 @@ class UnityEnv(SACEnv):
         return self.act_dim
 
     def get_act_high(self):
-        return self.act_high ## FIXME : doesnt support different highs in action dimensions
+        return self.act_high
 
     def get_random_act(self):
         return self.sample_act_func(self.get_agent_number())
 
     def pause(self):
+        """
+        Pause the foreign Unity environment
+        """
         message = messages.RequestMessage("pause", messages.SingleFieldMessage(True).to_json())
         self.server.send(message.to_json())
 
     def resume(self):
+        """
+        Resume the foreign Unity environment
+        """
         message = messages.RequestMessage("pause", messages.SingleFieldMessage(False).to_json())
         self.server.send(message.to_json())
 
     def get_name(self):
+        """
+        Return unique name of the instanced environment
+        """
         return self.name
     
     def get_agent_number(self):
+        """
+        Return number of agent in the environment
+        """
         return self.agent_number
     
     def set_time_scale(self, ts: int):
+        """
+        Set `timeScale` property of the Unity environment
+        """
         self.time_scale = ts
         req_json = get_json_request("timeScale", messages.SingleFieldMessage(ts))
         self.server.send(req_json)
 
     def spawn_envs(self, n):
+        """
+        Spawn multiple copy of an environment in the same scene
+
+        n -- number of copies to spawn
+        """
         req_json = get_json_request("spawnEnvs", messages.SingleFieldMessage(n))
         self.server.send(req_json)
+
+## internal functions
 
 def get_json_request(api, message):
     return messages.RequestMessage(api, message.to_json()).to_json()

@@ -6,6 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+/*
+A GameObject that manages one environment and the interactions with the agent
+*/
 public class EnvorinmentManager : MonoBehaviour
 {
     public Controller controller;
@@ -26,6 +29,9 @@ public class EnvorinmentManager : MonoBehaviour
     private float recordFreq = 0f;
     private float rewardCalculateFreq = 0f;
 
+    /*
+    perform one step with the given action
+    */
     public void Step(AgentAction action)
     {
         controller.moveInput = action.moveInput;
@@ -43,6 +49,9 @@ public class EnvorinmentManager : MonoBehaviour
         //textMeshProRew.SetText($"action : {action.moveInput:0.###} | {action.turnInput:0.###}");
     }
 
+    /*
+    Resets the environment
+    */
     public void Reset()
     {
         spaceManager.Reset();
@@ -51,11 +60,17 @@ public class EnvorinmentManager : MonoBehaviour
         createCurrentState(reset: true);
     }
 
+    /*
+    Returns the current state of the environment
+    */
     public EnvState getCurrentState()
     {
         return currState;
     }
 
+    /*
+    Compute the current state of the environment
+    */
     public void createCurrentState(bool reset=false)
     {
         prevState = currState;
@@ -92,6 +107,9 @@ public class EnvorinmentManager : MonoBehaviour
         currState = state;
     }
 
+    /*
+    Register the agent's task
+    */
     public void SetTask(AgentTask task)
     {
         this.task = task;

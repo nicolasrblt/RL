@@ -9,6 +9,9 @@ from torch.nn import functional
 
 @dataclass
 class TrainingParameters:
+    """
+    Dataclass holding SAC hyperparameters, see SACAgent.train() for more information
+    """
     epochs: int = 100
     epoch_len: int = 4000
     start_steps: int = 10000
@@ -34,6 +37,12 @@ class TrainingParameters:
 
 
 def create_mlp(sizes, activation, output_activation=nn.Identity):
+    """
+    Creates a simple multilayer perceptron with `len(sizes)` layers, each containing `sizes[i]`  neurons
+    sizes -- list of layer sizes
+    activation -- activation function for all layers
+    output_activation (optional) -- activation function for last layer
+    """
     assert len(sizes) >= 2
     layers = []
     activations = [activation] * (len(sizes)-2) + [output_activation]
@@ -43,6 +52,10 @@ def create_mlp(sizes, activation, output_activation=nn.Identity):
 
 
 class ReplayBuffer:
+    """
+    SAC Replay Buffer
+    Holds a queue of interaction between an agent and its environment
+    """
     def __init__(self, obs_dim, act_dim, size) -> None:
         self.max_size = size
         self.size = 0
@@ -55,8 +68,11 @@ class ReplayBuffer:
         self.done = np.zeros((size,), dtype=np.bool8)
 
     def record(self, obs, act, obs2, rew, done) -> None:
+        """
+        records an interaction or a set of interactions into the buffer
+        """
         s = 1 if len(obs.shape) == 1 else obs.shape[0]
-        ## TODO!! handle case where buffer needs to be written at its end *and* start
+        ## TODO handle case where buffer needs to be written at its end *and* start (not critical if size is multiple of s)
         self.obs[self.index:self.index+s] = obs
         self.act[self.index:self.index+s] = act
         self.obs2[self.index:self.index+s] = obs2
@@ -68,6 +84,9 @@ class ReplayBuffer:
             self.size = min(self.max_size, self.size+s)
 
     def sample(self, size: int) -> np.ndarray:
+        """
+        Samples randomly `size` interactions from the buffer and returns them as tensors
+        """
         assert self.size > size
         index = np.random.randint(0, self.size, size)
         batch = dict(obs = self.obs[index],
@@ -79,6 +98,9 @@ class ReplayBuffer:
     sample_batch = sample  # for compatibility with team codebase
 
 class QNet(nn.Module):
+    """
+    A class representing a Q-function as a feed-forward neural nerwork
+    """
     def __init__(self, obs_dim, act_dim, hidden_sizes=(256, 256), activation=nn.ReLU) -> None:
         super().__init__()
         # use id as output activation func for qnets
@@ -93,6 +115,9 @@ class QNet(nn.Module):
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
 class Policy(nn.Module):  # TODO rename Gaussian MLP ?
+    """
+    A class representing a policy as a gaussian feed-forward neural nerwork
+    """
     def __init__(self, obs_dim, act_dim, act_high, hidden_sizes=(256, 256), activation=nn.ReLU) -> None:
         super().__init__()
         self.net = create_mlp([obs_dim]+list(hidden_sizes), activation, activation)  # last layers mu & std of policy net are computed separately
@@ -102,6 +127,14 @@ class Policy(nn.Module):  # TODO rename Gaussian MLP ?
 
 
     def forward(self, obs, with_log_prob=True, probabilistic=True):  # -> action
+        """
+        Feed forward the network with inputs `obs`
+
+        with_log_prob -- a boolean specifying if the log_likelihood of selected action should be returned as well.
+            will raise an error if computed with non-probabilistic behaviour.
+        probabilistic -- a boolean specifying if the policy should behave as probabilistic or deterministic. 
+            If false, returns the distribution mean instead of sampling it.
+        """
         assert probabilistic or not with_log_prob # no logprob on non stochastic action
         feat = self.net(obs)
         mu = self.mu_layer(feat)

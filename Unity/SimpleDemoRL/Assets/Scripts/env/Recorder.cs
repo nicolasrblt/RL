@@ -4,6 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+A replay buffer to collect agent's interactions with its environment
+*/
 public class Recorder : MonoBehaviour
 {
     private Replay replay;

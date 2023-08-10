@@ -3,6 +3,9 @@
 
 using UnityEngine;
 
+/*
+A Task consisting in pushing a ball to a target area
+*/
 public class PushInTask: AgentTask
 {    public override float getReward(EnvState prevState, AgentAction action, EnvState currState)
     {

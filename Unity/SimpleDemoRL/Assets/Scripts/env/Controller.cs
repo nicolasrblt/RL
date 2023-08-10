@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+A GameObject managing the agent actions
+Allow to register an action executed each fixed update until a new one is registered
+*/
 public class Controller : MonoBehaviour
 {
     public float speed = 10.0f; // forward movement speed

@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+An extention of APIManager to register custom user APIs
+*/
 public class CustomApiManager : APIManager
 {
     SuperManager env;

@@ -10,6 +10,10 @@ using UnityEditor;
 
 public class Client : MonoBehaviour
 {
+    /**
+    A GameObject holding the Client communicating with python side
+    
+    */
     public string host;
     public int port;
     public SuperManager env;
@@ -31,6 +35,9 @@ public class Client : MonoBehaviour
 
     private void ReceiveMessage()
     {
+        /*
+        A function that blocks until it receives data from the socket, and returns the full unframed data once received
+        */
         int lenBufferLen = 4;
         Debug.Log("beginning listening for incoming msgs");
         byte[] dataBuffer = new byte[4096];
@@ -101,6 +108,9 @@ public class Client : MonoBehaviour
 
     private IEnumerator CallAPI(ApiFacade api, RequestMessage message)
     {
+        /*
+        A coroutine excecuting an api
+        */
         yield return StartCoroutine(api.runner(message.parameter));
         string ret = api.result();
         if (ret != null) {
@@ -112,13 +122,18 @@ public class Client : MonoBehaviour
 
     public void ShutdownSocket(string parameter)
     {
+        /*
+        Closes the sockect
+        */
         stop = true;
         client.Close();
     }
 
     public void Send(ResponseMessage response)
     {
-        //NetworkStream stream = client.GetStream();
+        /*
+        Sends framed data after encoding it
+        */
         byte[] data = Encoding.UTF8.GetBytes(response.ToJson());
         byte[] len = BitConverter.GetBytes(data.Length);
         // If the system architecture is not little-endian, reverse the byte array.
@@ -128,8 +143,6 @@ public class Client : MonoBehaviour
         stream.Write(payload, 0, payload.Length);
     }
 
-
-    // Start is called before the first frame update
     void Start()
     {
         Debug.unityLogger.logEnabled = true; // FIXME : rmove this quickfix
@@ -142,13 +155,11 @@ public class Client : MonoBehaviour
 
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public static byte[] Concat(byte[] first, byte[] second)
     {
+        /*
+        Concatenates 2 bytes sequences
+        */
         byte[] ret = new byte[first.Length + second.Length];
         Buffer.BlockCopy(first, 0, ret, 0, first.Length);
         Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);

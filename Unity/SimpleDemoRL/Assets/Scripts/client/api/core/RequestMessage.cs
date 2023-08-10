@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/*
+Message wrapping an api call
+*/
 [System.Serializable]
 public class RequestMessage
 {

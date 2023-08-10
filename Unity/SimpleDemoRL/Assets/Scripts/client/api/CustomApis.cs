@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+/*
+An API to set the `timeScale` Unity variable
+*/
 public class TimeScaleAPI: Api<SingleFieldMessage<float>, string>
 {
     private SuperManager env;
@@ -18,6 +21,9 @@ public class TimeScaleAPI: Api<SingleFieldMessage<float>, string>
     }
 }
 
+/*
+An API to step a single agent
+*/
 public class StepAPI: CoroutineApi<AgentAction, EnvState>
 {
     private SuperManager env;
@@ -38,6 +44,9 @@ public class StepAPI: CoroutineApi<AgentAction, EnvState>
     }
 }
 
+/*
+An API to reset a single agent
+*/
 public class ResetAPI: Api<SingleFieldMessage<int>, EnvState>
 {
     private SuperManager env;
@@ -58,6 +67,9 @@ public class ResetAPI: Api<SingleFieldMessage<int>, EnvState>
     }
 }
 
+/*
+An API to step multiple agent
+*/
 public class MultiStepAPI: CoroutineApi<MultiMessage<AgentAction>, MultiMessage<EnvState>>
 {
     private SuperManager env;
@@ -87,6 +99,9 @@ public class MultiStepAPI: CoroutineApi<MultiMessage<AgentAction>, MultiMessage<
     }
 }
 
+/*
+An API to reset multiple agents
+*/
 public class MultiResetAPI: Api<MultiMessage<int>, MultiMessage<EnvState>>
 {
     private SuperManager env;
@@ -111,6 +126,9 @@ public class MultiResetAPI: Api<MultiMessage<int>, MultiMessage<EnvState>>
 }
 
 
+/*
+An API to pause the environment
+*/
 public class PauseAPI: Api<SingleFieldMessage<bool>, string>
 {
     private SuperManager env;
@@ -126,6 +144,9 @@ public class PauseAPI: Api<SingleFieldMessage<bool>, string>
 }
 
 
+/*
+An API to exit the simulation
+*/
 public class ShutdownAPI: Api<string, string>
 {
     private SuperManager env;
@@ -143,6 +164,9 @@ public class ShutdownAPI: Api<string, string>
     }
 }
 
+/*
+An API to get elapsed time between 2 fixed updates, used for debugging purpose
+*/
 public class ElapsedFUAPI: Api<string, MultiMessage<int>>
 {
     private SuperManager env;
@@ -161,6 +185,9 @@ public class ElapsedFUAPI: Api<string, MultiMessage<int>>
     }
 }
 
+/*
+An API to spawn multiple sub-environment in the same scene
+*/
 public class SpawnEnvsAPI: Api<SingleFieldMessage<int>, string>
 {
     private SuperManager env;

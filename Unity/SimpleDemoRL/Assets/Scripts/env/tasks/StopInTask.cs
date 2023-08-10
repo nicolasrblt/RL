@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/*
+A Task consisting in stop the agent in a target area
+*/
 public class StopInTask: AgentTask
 {    public override float getReward(EnvState prevState, AgentAction action, EnvState currState)
     {

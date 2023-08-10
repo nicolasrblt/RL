@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class AgentAction
 {
+    /*
+    Message specifying action to perform for a step
+    */
     public float moveInput;
     public float turnInput;
     public int envNum;

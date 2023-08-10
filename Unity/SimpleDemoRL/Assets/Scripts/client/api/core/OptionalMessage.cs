@@ -1,6 +1,10 @@
 using UnityEngine;
 using System;
 
+
+/*
+A Utility classs to send an optional message
+*/
 [System.Serializable]
 public class OptionalMessage<T> where T : class
 {

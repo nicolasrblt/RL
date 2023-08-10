@@ -2,6 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/*
+A Dummy AI capable of controlling the agent to complete a specific task,
+Used to collect samples of interactions
+*/
 public class DummyAI : MonoBehaviour
 {
     public GoalManager goalManager;

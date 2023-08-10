@@ -4,6 +4,9 @@ from .message import Message
 
 
 class ObservationMessage(Message):
+    """
+    Message specifying an environment state
+    """
     def __init__(self, agentPostion, agentRotation, velocity, angularVelocity, 
                  redBallPosition, blueBallPosition, greenBallPosition, 
                  grayAreaPosition, orangeAreaPosition, whiteAreaPosition,
