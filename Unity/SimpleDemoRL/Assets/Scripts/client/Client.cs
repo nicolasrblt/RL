@@ -59,22 +59,17 @@ public class Client : MonoBehaviour
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(lenBuffer);
             msgLen = (int)BitConverter.ToUInt32(lenBuffer, 0); // TODO : handle messages too big : overflow on sign bit / too laggy to handle
-            //Debug.Log($"incomming msg size  : {msgLen} ({BitConverter.ToString(lenBuffer)})");
 
             
             
             
             bytesRead = 0;
-            //Debug.Log("read loop in");
             while (msgLen > 0)
             {
-                //Debug.Log($"read loop inside ({stream.DataAvailable})");
                 bytesRead = stream.Read(dataBuffer, 0, Mathf.Min(dataBuffer.Length, msgLen));
-                //Debug.Log($"did read {bytesRead}B");
                 stringBuilder.Append(System.Text.Encoding.UTF8.GetString(dataBuffer, 0, bytesRead));
                 msgLen -= bytesRead;
             }
-            //Debug.Log("read loop out");
 
 
 
@@ -82,9 +77,7 @@ public class Client : MonoBehaviour
             {
                 try {
                 string json = stringBuilder.ToString();
-                //Debug.Log($"json : {json}");
                 RequestMessage message = RequestMessage.FromJson(json);
-                //Debug.Log($"message : {message.api}, {message.parameter}");
                 // TODO : rethink the use of corroutines here : UnityMainThreadDispatcher already runs actions as coroutines
                 ApiFacade api = apiManager.GetApi(message.api);
                 switch (api.dispatchMethod)

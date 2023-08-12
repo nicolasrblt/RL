@@ -32,7 +32,6 @@ public class StepAPI: CoroutineApi<AgentAction, EnvState>
         this.env = env;
     }
     public override IEnumerator Handle(AgentAction msg) {
-        //Debug.Log($"control : {msg.moveInput}, {msg.turnInput}");
         env.GetEnv(0).Step(msg);
         yield return new WaitForFixedUpdate();
         env.GetEnv(0).createCurrentState();
@@ -55,7 +54,6 @@ public class ResetAPI: Api<SingleFieldMessage<int>, EnvState>
         this.env = env;
     }
     public override EnvState Handle(SingleFieldMessage<int> msg) {
-        //Debug.Log($"reset");
         env.GetEnv((int)msg).Reset();
         env.GetEnv((int)msg).createCurrentState(true);
         return env.GetEnv((int)msg).getCurrentState();
@@ -137,7 +135,6 @@ public class PauseAPI: Api<SingleFieldMessage<bool>, string>
         this.env = env;
     }
     public override string Handle(SingleFieldMessage<bool> msg) {
-        //Debug.Log($"pause : {(bool)msg}");
         env.Pause(msg);
         return null;
     }

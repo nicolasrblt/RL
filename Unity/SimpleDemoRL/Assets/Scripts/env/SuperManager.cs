@@ -72,7 +72,7 @@ public class SuperManager : MonoBehaviour
             for (int j = 0; i+j*c<n; j++)
             {
                 environments.Add(
-                    Instantiate(TrainingArea, new Vector3((i-c/2f+.5f)*25, 0, (j-c/2f+.5f)*25), Quaternion.identity).GetComponent<EnvorinmentManager>()
+                    Instantiate(TrainingArea, new Vector3((i-c/2f+.5f)*25, 0, (j-c/2f+.5f)*25), Quaternion.identity).GetComponentInChildren<EnvorinmentManager>()
                 );
                 Debug.Log("instantiate");
             }

@@ -40,7 +40,6 @@ public class Controller : MonoBehaviour
 
     void FixedUpdate()
     {
-        //Debug.Log("FFFF ctrlr");
         if (newInput)
         {
             Debug.Log($"{elapsedFU} FU elsapsed TS={Time.timeScale}");

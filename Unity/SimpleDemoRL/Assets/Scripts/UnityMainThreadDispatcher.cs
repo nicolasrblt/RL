@@ -34,14 +34,12 @@ public class UnityMainThreadDispatcher : MonoBehaviour {
 	private static readonly Queue<System.Action> _fixedExecutionQueue = new Queue<System.Action>();
 
 	public void Update() {
-        //Debug.Log("UUUU Dispatcher");
         DequeueAll(_executionQueue);
 
 	}
     void FixedUpdate()
     {
         DequeueAll(_fixedExecutionQueue);
-        //Debug.Log("FFFF Dispatcher");
     }
 
 	/// <summary>
